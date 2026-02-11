@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Controle Financeiro - Dayerre</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/plug-ins/1.13.6/sorting/date-eu.js"></script>
+
+  <!-- PapaParse -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- Google APIs (com onload para evitar corrida de carregamento) -->
+  <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+  <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+    .navbar {
+      background: linear-gradient(135deg, #007AFF, #005bb5);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      padding: 24px;
+      margin-bottom: 24px;
+      border: none;
+    }
+    .summary-card {
+      text-align: center;
+      padding: 20px;
+      border-radius: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .summary-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+    .summary-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .summary-value { font-size: 2rem; font-weight: 700; }
+
+    tfoot input {
+      width: 100%;
+      padding: 6px;
+      font-size: 0.9em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .edit-cell { cursor: pointer; padding: 6px !important; font-size: 13px; }
+    .edit-cell:hover { background: #f0f8ff !important; }
+    #addRowForm { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 16px; display: none; }
+
+    table.dataTable td { padding: 6px !important; font-size: 13px; }
+    table.dataTable th { padding: 8px !important; font-size: 13px; text-align: center; }
+    .dataTables_scrollBody { overflow-x: auto !important; }
+
+    .money-cell { text-align: right; white-space: nowrap; font-weight: 500; }
+
+    #monthlyReportModal .modal-dialog { max-width: 95%; }
+    #monthlyReportTable td, #monthlyReportTable th { padding: 6px !important; font-size: 13px; }
+    .month-input { width: 180px; }
+  </style>
+</head>
+
+<body>
+  <div class="navbar">Controle Financeiro - Dayerre</div>
+
+  <div class="container pt-4">
+    <div class="card">
+      <h3 class="mb-4 text-center">Resumo Financeiro</h3>
+      <div class="row text-center">
+        <div class="col-md-4 mb-3">
+          <div class="summary-card bg-light shadow-sm">
+            <i class="bi bi-wallet2 summary-icon text-primary"></i>
+            <div>Total Geral</div>
+            <div class="summary-value text-primary" id="totalGeral">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="summary-card bg-light shadow-sm">
+            <i class="bi bi-check-circle summary-icon text-success"></i>
+            <div>Total Pago</div>
+            <div class="summary-value text-success" id="totalPago">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="summary-card bg-light shadow-sm">
+            <i class="bi bi-exclamation-triangle summary-icon text-danger"></i>
+            <div>Total a Pagar</div>
+            <div class="summary-value text-danger" id="totalAPagar">R$ 0,00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Lançamentos (Mais recente primeiro)</h3>
+
+      <div style="margin-bottom: 20px;">
+        <button id="btnImportCSV" class="btn btn-info mr-2 mb-2">Importar CSV</button>
+        <button id="btnExportCSV" class="btn btn-outline-primary mr-2 mb-2">Exportar CSV</button>
+
+        <button id="btnAddRow" class="btn btn-primary mr-2 mb-2">+ Nova Parcela</button>
+        <button id="btnExcluirRegistro" class="btn btn-danger mr-2 mb-2">Excluir Registros</button>
+        <button id="btnMarcarPago" class="btn btn-success mr-2 mb-2">Marcar como Pago</button>
+        <button id="btnUpdateTotals" class="btn btn-secondary mr-2 mb-2">Atualizar Totais</button>
+        <button id="btnMonthlyReport" class="btn btn-info mr-2 mb-2">Relatórios Mensais</button>
+
+        <button id="btnSyncSheets" class="btn btn-warning mb-2" disabled>Carregar do Google Sheets</button>
+
+        <input type="file" id="fileInput" accept=".csv" style="display:none;" />
+      </div>
+
+      <!-- Formulário Nova Parcela -->
+      <div id="addRowForm" style="display:none;">
+        <div class="card bg-light mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Adicionar Nova Parcela</h5>
+            <form id="newRowForm">
+              <div class="form-row">
+                <div class="col-md-3 mb-2">
+                  <input type="text" class="form-control" id="newDataCompra" placeholder="DD/MM/AAAA" required />
+                </div>
+                <div class="col-md-3 mb-2">
+                  <input type="text" class="form-control" id="newReceber" list="receberOptions" placeholder="Quem recebe" required />
+                  <datalist id="receberOptions"></datalist>
+                </div>
+                <div class="col-md-4 mb-2">
+                  <input type="text" class="form-control" id="newDescricao" placeholder="Descrição" required />
+                </div>
+                <div class="col-md-2 mb-2">
+                  <input type="text" class="form-control" id="newLoja" list="lojaOptions" placeholder="Loja" />
+                  <datalist id="lojaOptions"></datalist>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col-md-3 mb-2">
+                  <input type="text" class="form-control" id="newValorTotal" placeholder="R$ Valor Total" required />
+                </div>
+                <div class="col-md-3 mb-2">
+                  <input type="text" class="form-control" id="newCartao" list="cartaoOptions" placeholder="Cartão" required />
+                  <datalist id="cartaoOptions"></datalist>
+                </div>
+                <div class="col-md-2 mb-2">
+                  <input type="number" class="form-control" id="newTotalParcelas" min="1" value="1" placeholder="Total Parc." required />
+                </div>
+                <div class="col-md-2 mb-2">
+                  <input type="text" class="form-control" id="newValorParcela" placeholder="R$ Parcela" readonly />
+                </div>
+                <div class="col-md-4 mb-2">
+                  <input type="text" class="form-control" id="newDataPagamento" placeholder="DD/MM/AAAA" required />
+                </div>
+                <div class="col-md-3 mb-2">
+                  <select class="form-control" id="newStatus" required>
+                    <option value="Pago">Pago</option>
+                    <option value="Em aberto" selected>Em aberto</option>
+                  </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                  <button type="submit" class="btn btn-success btn-block">Adicionar</button>
+                </div>
+                <div class="col-md-2 mb-2">
+                  <button type="button" id="cancelAdd" class="btn btn-secondary btn-block">Cancelar</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <table id="dataTable" class="display compact" style="width:100%;">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll" /></th>
+            <th>DATA COMPRA</th>
+            <th>VALORES A RECEBER</th>
+            <th>DESCRIÇÃO</th>
+            <th>LOJA</th>
+            <th>VALOR TOTAL</th>
+            <th>CARTÃO</th>
+            <th>TOTAL PARCELAS</th>
+            <th>PARCELA</th>
+            <th>VALOR PARCELA</th>
+            <th>DATA PAGTO</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <th></th>
+            <th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th>
+            <th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Relatórios Mensais -->
+  <div class="modal fade" id="monthlyReportModal" tabindex="-1" role="dialog" aria-labelledby="monthlyReportLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="monthlyReportLabel">Relatórios Mensais Financeiros</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="monthInput">Mês/Ano</label>
+              <input type="month" id="monthInput" class="form-control month-input" />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="recipientSelect">Quem Recebe</label>
+              <select id="recipientSelect" class="form-control">
+                <option value="Todos">Todos</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="cardSelect">Cartão</label>
+              <select id="cardSelect" class="form-control">
+                <option value="Todos">Todos</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card mt-3">
+            <div class="card-body">
+              <h5>Resumo do Período Filtrado</h5>
+              <div class="row text-center">
+                <div class="col-md-4">Total Geral <strong id="reportTotalGeral">R$ 0,00</strong></div>
+                <div class="col-md-4">Total Pago <strong id="reportTotalPago">R$ 0,00</strong></div>
+                <div class="col-md-4">Total a Pagar <strong id="reportTotalAPagar">R$ 0,00</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <table id="monthlyReportTable" class="display compact mt-4" style="width:100%;">
+            <thead>
+              <tr>
+                <th>DATA COMPRA</th>
+                <th>VALORES A RECEBER</th>
+                <th>DESCRIÇÃO</th>
+                <th>LOJA</th>
+                <th>VALOR TOTAL</th>
+                <th>CARTÃO</th>
+                <th>PARCELA TOTAL</th>
+                <th>VALOR PARCELA</th>
+                <th>DATA PAGTO</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /**********************
+   * CONFIGURAÇÕES SHEETS
+   **********************/
+  const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
+  const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
+  const SHEET_NAME = "Sheet1"; // se sua aba for "Folha1", troque aqui
+  const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+
+  let tokenClient = null;
+  let gapiInited = false;
+  let gisInited = false;
+
+  /**********************
+   * DADOS / TABELAS
+   **********************/
+  let tableData = [];
+  let dataTable = null;
+  let monthlyReportTable = null;
+
+  /**********************
+   * Helpers (money/date)
+   **********************/
+  function formatMoneyBR(num) {
+    if (isNaN(num) || num === null) return "R$ 0,00";
+    return "R$ " + Number(num).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Aceita: "12,34", "1.234,56", "R$ 1.234,56", "1234.56", "R$1234,56"
+  function parseMoneyBR(str) {
+    if (str === null || str === undefined) return 0;
+
+    const cleaned = String(str)
+      .replace(/\s/g, "")
+      .replace(/^R\$/i, "")
+      .replace(/[^0-9,.\-]/g, "");
+
+    if (!cleaned) return 0;
+
+    if (cleaned.includes(",")) {
+      return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
+    }
+    return parseFloat(cleaned) || 0;
+  }
+
+  function parseDateBR(s) {
+    if (!s) return null;
+    const [d, m, y] = String(s).split("/");
+    return (y && m && d) ? new Date(y, m - 1, d) : null;
+  }
+
+  function formatDateBR(date) {
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    return `${d}/${m}/${date.getFullYear()}`;
+  }
+
+  function addMonthsToDateBR(s, months) {
+    const d = parseDateBR(s);
+    if (!d) return s;
+    d.setMonth(d.getMonth() + months);
+    return formatDateBR(d);
+  }
+
+  /**********************
+   * Cache local (opcional)
+   **********************/
+  function saveDataToStorage() {
+    localStorage.setItem("controleFinanceiroDayerre_cache", JSON.stringify(tableData));
+  }
+
+  function loadCacheFromStorage() {
+    const saved = localStorage.getItem("controleFinanceiroDayerre_cache");
+    if (saved) {
+      try { tableData = JSON.parse(saved) || []; } catch(e) { tableData = []; }
+    }
+  }
+
+  /**********************
+   * UI updates
+   **********************/
+  function updateAutoCompleteOptions() {
+    const receberSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
+    const cartaoSet  = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+    const lojaSet    = new Set(tableData.map(r => r["LOJA"]).filter(Boolean));
+
+    $("#receberOptions").html(Array.from(receberSet).sort().map(v => `<option value="${v}"></option>`).join(""));
+    $("#cartaoOptions").html(Array.from(cartaoSet).sort().map(v => `<option value="${v}"></option>`).join(""));
+    $("#lojaOptions").html(Array.from(lojaSet).sort().map(v => `<option value="${v}"></option>`).join(""));
+  }
+
+  function updateDashboard() {
+    let totalG = 0, pago = 0, apagar = 0;
+
+    tableData.forEach(r => {
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      totalG += v;
+      if (r["STATUS"] === "Pago") pago += v;
+      else apagar += v;
+    });
+
+    $("#totalGeral").text(formatMoneyBR(totalG));
+    $("#totalPago").text(formatMoneyBR(pago));
+    $("#totalAPagar").text(formatMoneyBR(apagar));
+  }
+
+  function initTable() {
+    if (dataTable) dataTable.destroy();
+
+    dataTable = $("#dataTable").DataTable({
+      data: tableData,
+      columns: [
+        { data: null, orderable: false, render: () => '<input type="checkbox" class="row-checkbox" />' },
+        { data: "DATA COMPRA", type: "date-eu", className: "edit-cell" },
+        { data: "VALORES A RECEBER", className: "edit-cell" },
+        { data: "DESCRIÇÃO", className: "edit-cell" },
+        { data: "LOJA", className: "edit-cell" },
+        { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)), className: "edit-cell money-cell" },
+        { data: "CARTÃO", className: "edit-cell" },
+        { data: "TOTAL PARCELAS", className: "edit-cell text-center" },
+        { data: "PARCELA", className: "edit-cell text-center" },
+        { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)), className: "edit-cell money-cell" },
+        { data: "DATA PAGTO", className: "edit-cell" },
+        { data: "STATUS", className: "edit-cell" }
+      ],
+      order: [[1, "desc"]],
+      pageLength: 20,
+      lengthMenu: [20, 40, 60, 80, 100, 200, -1],
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
+      scrollX: true,
+      initComplete: function () {
+        this.api().columns().every(function (i) {
+          if (i === 0) return;
+          const column = this;
+          $('<input type="text" class="form-control form-control-sm" placeholder="Filtrar...">')
+            .appendTo($(column.footer()).empty())
+            .on("keyup change", function () {
+              if (column.search() !== this.value) column.search(this.value).draw();
+            });
+        });
+      }
+    });
+
+    $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
+      const cell = dataTable.cell(this);
+      const field = dataTable.column(cell.index().column).header().textContent.trim();
+      const oldVal = cell.data();
+
+      const input = $(`<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}">`);
+      $(this).html(input);
+      input.focus().select();
+
+      input.on("blur", function () {
+        let newVal = input.val().trim();
+
+        if (field.includes("VALOR")) {
+          newVal = formatMoneyBR(parseMoneyBR(newVal));
+        } else if (field.includes("TOTAL PARCELAS") || field === "PARCELA") {
+          newVal = parseInt(newVal) || 0;
+        }
+
+        cell.data(newVal);
+        dataTable.draw(false);
+        updateDashboard();
+        updateAutoCompleteOptions();
+        saveDataToStorage();
+      });
+
+      input.on("keypress", function (e) {
+        if (e.which === 13) input.blur();
+      });
+    });
+
+    $("#selectAll").off("change").on("change", function () {
+      $(".row-checkbox").prop("checked", this.checked);
+    });
+  }
+
+  /**********************
+   * CSV import/export
+   **********************/
+  $("#btnImportCSV").on("click", () => $("#fileInput").click());
+
+  $("#fileInput").on("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      delimiter: ",",
+      transformHeader: h => h.trim().toUpperCase().replace(/\s+/g, " "),
+      complete: function (results) {
+        if (results.errors && results.errors.length > 0) {
+          alert("Erro ao ler o CSV: " + results.errors.map(e => e.message).join(", "));
+          return;
+        }
+
+        tableData = (results.data || []).map(row => ({
+          "DATA COMPRA": row["DATA COMPRA"] || "",
+          "VALORES A RECEBER": row["VALORES A RECEBER"] || "",
+          "DESCRIÇÃO": row["DESCRIÇÃO"] || "",
+          "LOJA": row["LOJA"] || "",
+          "VALOR TOTAL": formatMoneyBR(parseMoneyBR(row["VALOR TOTAL"] || "0")),
+          "CARTÃO": row["CARTÃO UTILIZADO"] || row["CARTAO"] || row["CARTÃO"] || "",
+          "TOTAL PARCELAS": parseInt(row["TOTAL PARCELAS"] || row["TOTAL PARC."]) || 1,
+          "PARCELA": parseInt(row["PARCELA ATUAL"] || row["PARCELA"]) || 1,
+          "VALOR PARCELA": formatMoneyBR(parseMoneyBR(row["VALOR PARCELA"] || "0")),
+          "DATA PAGTO": row["DATA PAGAMENTO"] || row["DATA PAGTO"] || "",
+          "STATUS": row["STATUS"] || "Em aberto"
+        })).filter(r => r["DATA COMPRA"] || r["DESCRIÇÃO"] || parseMoneyBR(r["VALOR PARCELA"]) > 0);
+
+        initTable();
+        updateDashboard();
+        updateAutoCompleteOptions();
+        saveDataToStorage();
+        alert(`Importados ${tableData.length} registros com sucesso!`);
+      },
+      error: function (err) {
+        alert("Erro ao processar o CSV: " + err);
+      }
+    });
+
+    this.value = "";
+  });
+
+  $("#btnExportCSV").on("click", function () {
+    if (tableData.length === 0) { alert("Não há dados para exportar."); return; }
+    const csv = Papa.unparse(tableData);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `controlefinanceiro-dayerre-${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  /**********************
+   * Add parcelas
+   **********************/
+  $("#btnAddRow").on("click", function () {
+    $("#addRowForm").slideToggle(300);
+    updateAutoCompleteOptions();
+    const hoje = formatDateBR(new Date());
+    $("#newDataCompra").val(hoje);
+    $("#newDataPagamento").val(hoje);
+  });
+
+  $("#cancelAdd").on("click", function () {
+    $("#addRowForm").slideUp(300);
+    $("#newRowForm")[0].reset();
+  });
+
+  $("#newDataCompra, #newDataPagamento").on("input", function () {
+    let v = this.value.replace(/\D/g, "").slice(0, 8);
+    if (v.length > 2) v = v.slice(0,2) + "/" + v.slice(2);
+    if (v.length > 5) v = v.slice(0,5) + "/" + v.slice(5);
+    this.value = v;
+  });
+
+  $("#newValorTotal").on("input", function () {
+    this.value = this.value.replace(/[^0-9,.\-]/g, "");
+  });
+
+  $("#newValorTotal, #newTotalParcelas").on("input change", function () {
+    const total = parseMoneyBR($("#newValorTotal").val());
+    const parc = parseInt($("#newTotalParcelas").val()) || 1;
+    $("#newValorParcela").val(formatMoneyBR(total / parc));
+  });
+
+  $("#newRowForm").on("submit", function (e) {
+    e.preventDefault();
+
+    const dataCompra = $("#newDataCompra").val().trim();
+    const dataPrimeira = $("#newDataPagamento").val().trim();
+
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataCompra)) { alert("Data da compra inválida! Use DD/MM/AAAA"); return; }
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataPrimeira)) { alert("Data da primeira parcela inválida! Use DD/MM/AAAA"); return; }
+
+    const base = {
+      "DATA COMPRA": dataCompra,
+      "VALORES A RECEBER": $("#newReceber").val().trim(),
+      "DESCRIÇÃO": $("#newDescricao").val().trim(),
+      "LOJA": $("#newLoja").val().trim(),
+      "VALOR TOTAL": formatMoneyBR(parseMoneyBR($("#newValorTotal").val())),
+      "CARTÃO": $("#newCartao").val().trim(),
+      "TOTAL PARCELAS": parseInt($("#newTotalParcelas").val()) || 1,
+      "STATUS": $("#newStatus").val()
+    };
+
+    const valorParcela = formatMoneyBR(parseMoneyBR($("#newValorParcela").val()));
+
+    for (let i = 1; i <= base["TOTAL PARCELAS"]; i++) {
+      tableData.push({
+        ...base,
+        "PARCELA": i,
+        "VALOR PARCELA": valorParcela,
+        "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1)
+      });
+    }
+
+    tableData.sort((a, b) => (parseDateBR(b["DATA COMPRA"]) - parseDateBR(a["DATA COMPRA"])));
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    saveDataToStorage();
+
+    this.reset();
+    $("#addRowForm").slideUp(300);
+    alert("Parcelas adicionadas com sucesso!");
+  });
+
+  /**********************
+   * Excluir / Marcar Pago / Atualizar
+   **********************/
+  $("#btnExcluirRegistro").on("click", function () {
+    const selecionados = $(".row-checkbox:checked").length;
+    if (selecionados === 0) { alert("Selecione pelo menos um registro para excluir."); return; }
+    if (!confirm(`Tem certeza que deseja excluir ${selecionados} registros?`)) return;
+
+    const indices = [];
+    $(".row-checkbox:checked").each(function () {
+      const row = $(this).closest("tr");
+      const idx = dataTable.row(row).index();
+      indices.push(idx);
+    });
+
+    indices.sort((a,b) => b-a).forEach(idx => tableData.splice(idx, 1));
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    saveDataToStorage();
+    alert(`${selecionados} registros excluídos com sucesso!`);
+  });
+
+  $("#btnMarcarPago").on("click", function () {
+    const selecionados = $(".row-checkbox:checked").length;
+    if (selecionados === 0) { alert("Selecione pelo menos um registro para marcar como pago."); return; }
+    if (!confirm(`Tem certeza que deseja marcar ${selecionados} registros como PAGO?`)) return;
+
+    let mudou = 0;
+    $(".row-checkbox:checked").each(function () {
+      const row = $(this).closest("tr");
+      const idx = dataTable.row(row).index();
+      if (tableData[idx] && tableData[idx]["STATUS"] === "Em aberto") {
+        tableData[idx]["STATUS"] = "Pago";
+        mudou++;
+      }
+    });
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    saveDataToStorage();
+    alert(mudou > 0 ? `${mudou} registros marcados como PAGO com sucesso!` : "Nenhum registro selecionado estava como Em aberto.");
+  });
+
+  $("#btnUpdateTotals").on("click", function () {
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    alert("Totais atualizados com sucesso!");
+  });
+
+  /**********************
+   * Relatórios Mensais
+   **********************/
+  function updateReport() {
+    const monthValue = $("#monthInput").val();
+    const recipient = $("#recipientSelect").val();
+    const card = $("#cardSelect").val();
+
+    const filtered = tableData.filter(row => {
+      const datePagto = parseDateBR(row["DATA PAGTO"]);
+      if (!datePagto) return false;
+
+      if (monthValue) {
+        const [y, m] = monthValue.split("-").map(Number);
+        if (datePagto.getFullYear() !== y) return false;
+        if ((datePagto.getMonth() + 1) !== m) return false;
+      }
+      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
+      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
+
+      return true;
+    });
+
+    let total = 0, pago = 0, apagar = 0;
+    filtered.forEach(r => {
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      total += v;
+      if (r["STATUS"] === "Pago") pago += v;
+      else apagar += v;
+    });
+
+    $("#reportTotalGeral").text(formatMoneyBR(total));
+    $("#reportTotalPago").text(formatMoneyBR(pago));
+    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+
+    if (monthlyReportTable) monthlyReportTable.destroy();
+
+    monthlyReportTable = $("#monthlyReportTable").DataTable({
+      data: filtered,
+      columns: [
+        { data: "DATA COMPRA" },
+        { data: "VALORES A RECEBER" },
+        { data: "DESCRIÇÃO" },
+        { data: "LOJA" },
+        { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)) },
+        { data: "CARTÃO" },
+        { data: null, render: d => `${d["PARCELA"]}/${d["TOTAL PARCELAS"]}`, className: "text-center" },
+        { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)) },
+        { data: "DATA PAGTO" },
+        { data: "STATUS" }
+      ],
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100, -1],
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
+      dom: "frtip",
+      order: [[8, "asc"]]
+    });
+  }
+
+  $("#btnMonthlyReport").on("click", function () {
+    const recipientSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
+    const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+
+    const selRec = $("#recipientSelect");
+    selRec.empty().append(`<option value="Todos">Todos</option>`);
+    Array.from(recipientSet).sort().forEach(v => selRec.append(`<option value="${v}">${v}</option>`));
+
+    const selCard = $("#cardSelect");
+    selCard.empty().append(`<option value="Todos">Todos</option>`);
+    Array.from(cardSet).sort().forEach(v => selCard.append(`<option value="${v}">${v}</option>`));
+
+    if (monthlyReportTable) monthlyReportTable.destroy();
+    updateReport();
+    $("#monthlyReportModal").modal("show");
+  });
+
+  $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
+
+  /**********************
+   * GOOGLE - Inicialização robusta (sem corrida)
+   **********************/
+  function maybeEnableSheetsButton() {
+    if (gapiInited && gisInited) {
+      const btn = document.getElementById("btnSyncSheets");
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  // Chamado pelo onload do https://apis.google.com/js/api.js
+  window.gapiLoaded = function () {
+    gapi.load("client", async () => {
+      try {
+        await gapi.client.init({ discoveryDocs: [DISCOVERY_DOC] });
+        gapiInited = true;
+        maybeEnableSheetsButton();
+      } catch (e) {
+        console.error("Falha ao inicializar gapi.client:", e);
+        alert("Falha ao inicializar Google API (gapi). Veja o console (F12).");
+      }
+    });
+  };
+
+  // Chamado pelo onload do https://accounts.google.com/gsi/client
+  window.gisLoaded = function () {
+    try {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: "https://www.googleapis.com/auth/spreadsheets",
+        callback: (tokenResponse) => {
+          if (tokenResponse.error) {
+            console.error("Erro OAuth:", tokenResponse);
+            alert("Erro na autorização: " + tokenResponse.error);
+            return;
+          }
+          loadDataFromSheets();
+        }
+      });
+      gisInited = true;
+      maybeEnableSheetsButton();
+    } catch (e) {
+      console.error("Falha ao inicializar GIS tokenClient:", e);
+      alert("Falha ao inicializar Google Identity Services. Veja o console (F12).");
+    }
+  };
+
+  function syncWithSheets() {
+    if (!tokenClient) {
+      alert("Aguarde as bibliotecas do Google carregarem.");
+      return;
+    }
+    tokenClient.requestAccessToken({ prompt: "consent" });
+  }
+
+  async function loadDataFromSheets() {
+    try {
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:K`
+      });
+
+      const rows = response.result.values || [];
+
+      if (rows.length <= 1) {
+        tableData = [];
+        initTable();
+        updateDashboard();
+        updateAutoCompleteOptions();
+        alert("Planilha vazia ou sem dados.");
+        return;
+      }
+
+      tableData = rows.slice(1).map(row => ({
+        "DATA COMPRA": row[0] || "",
+        "VALORES A RECEBER": row[1] || "",
+        "DESCRIÇÃO": row[2] || "",
+        "LOJA": row[3] || "",
+        "VALOR TOTAL": formatMoneyBR(parseMoneyBR(row[4] || "0")),
+        "CARTÃO": row[5] || "",
+        "TOTAL PARCELAS": parseInt(row[6]) || 1,
+        "PARCELA": parseInt(row[7]) || 1,
+        "VALOR PARCELA": formatMoneyBR(parseMoneyBR(row[8] || "0")),
+        "DATA PAGTO": row[9] || "",
+        "STATUS": row[10] || "Em aberto"
+      }));
+
+      initTable();
+      updateDashboard();
+      updateAutoCompleteOptions();
+      saveDataToStorage();
+
+      alert("Dados carregados do Google Sheets com sucesso!");
+    } catch (err) {
+      console.error("Erro ao carregar planilha:", err);
+      alert("Erro ao carregar dados. Veja o console (F12) para detalhes.");
+    }
+  }
+
+  $("#btnSyncSheets").on("click", syncWithSheets);
+
+  /**********************
+   * Inicialização do app
+   **********************/
+  $(document).ready(function () {
+    // Opcional: mostra cache enquanto você carrega do Sheets
+    loadCacheFromStorage();
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+
+    // começa desabilitado; habilita automaticamente quando gapi+gis ficarem prontos
+    document.getElementById("btnSyncSheets").disabled = true;
+  });
+</script>
+</body>
+</html>
