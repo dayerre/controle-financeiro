@@ -73,10 +73,28 @@
     #monthlyReportTable td, #monthlyReportTable th { padding: 6px !important; font-size: 13px; }
     .month-input { width: 180px; }
 
-    /* Melhor para celular: botões quebram linha bonito */
     .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
     .toolbar .btn { margin: 0 !important; }
     .status-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; }
+
+    /* Impressão: imprimir só o modal de relatório */
+    @media print {
+      body * { visibility: hidden !important; }
+      #monthlyReportModal, #monthlyReportModal * { visibility: visible !important; }
+
+      #monthlyReportModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .modal-backdrop { display: none !important; }
+      .modal { overflow: visible !important; }
+      .modal-dialog { max-width: 100% !important; }
+    }
   </style>
 </head>
 
@@ -290,8 +308,8 @@
         </div>
 
         <div class="modal-footer">
-   <button type="button" class="btn btn-outline-primary" id="btnPrintReport">Imprimir</button>
-  <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          <button type="button" class="btn btn-outline-primary" id="btnPrintReport">Imprimir</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
         </div>
       </div>
     </div>
@@ -303,12 +321,12 @@
    **********************/
   const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
   const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
-  const SHEET_NAME = "Sheet1"; // ajuste se sua aba for "Folha1"
+  const SHEET_NAME = "Sheet1";
   const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
 
   const HEADERS = ["DATA COMPRA","VALORES A RECEBER","DESCRIÇÃO","LOJA","VALOR TOTAL","CARTÃO","TOTAL PARCELAS","PARCELA","VALOR PARCELA","DATA PAGTO","STATUS"];
-  const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;   // leitura
-  const WRITE_START_A1 = `${SHEET_NAME}!A1`;  // escrita (salvar tudo)
+  const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
+  const WRITE_START_A1 = `${SHEET_NAME}!A1`;
 
   let tokenClient = null;
   let gapiInited = false;
@@ -330,7 +348,6 @@
     return "R$ " + Number(num).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  // Aceita: "12,34", "1.234,56", "R$ 1.234,56", "1234.56", "R$1234,56"
   function parseMoneyBR(str) {
     if (str === null || str === undefined) return 0;
     const cleaned = String(str).replace(/\s/g, "").replace(/^R\$/i, "").replace(/[^0-9,.\-]/g, "");
@@ -459,16 +476,12 @@
       input.on("blur", async function () {
         let newVal = input.val().trim();
 
-        if (field.includes("VALOR")) {
-          newVal = formatMoneyBR(parseMoneyBR(newVal));
-        } else if (field.includes("TOTAL PARCELAS") || field === "PARCELA") {
-          newVal = parseInt(newVal) || 0;
-        }
+        if (field.includes("VALOR")) newVal = formatMoneyBR(parseMoneyBR(newVal));
+        else if (field.includes("TOTAL PARCELAS") || field === "PARCELA") newVal = parseInt(newVal) || 0;
 
         cell.data(newVal);
         dataTable.draw(false);
 
-        // mantém o array tableData consistente com a linha editada
         const rowIdx = cell.index().row;
         tableData[rowIdx][field] = newVal;
         tableData[rowIdx] = normalizeRow(tableData[rowIdx]);
@@ -476,9 +489,7 @@
         updateDashboard();
         updateAutoCompleteOptions();
 
-        if ($("#chkAutoSave").prop("checked")) {
-          await saveAllToSheets();
-        }
+        if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
       });
 
       input.on("keypress", function (e) { if (e.which === 13) input.blur(); });
@@ -527,11 +538,8 @@
         updateDashboard();
         updateAutoCompleteOptions();
 
-        if ($("#chkAutoSave").prop("checked")) {
-          await saveAllToSheets();
-        } else {
-          alert("Importado. Clique em “Salvar no Sheets” para gravar.");
-        }
+        if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
+        else alert("Importado. Clique em “Salvar no Sheets” para gravar.");
       }
     });
 
@@ -623,11 +631,8 @@
     this.reset();
     $("#addRowForm").slideUp(300);
 
-    if ($("#chkAutoSave").prop("checked")) {
-      await saveAllToSheets();
-    } else {
-      alert("Parcelas adicionadas. Clique em “Salvar no Sheets” para gravar.");
-    }
+    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
+    else alert("Parcelas adicionadas. Clique em “Salvar no Sheets” para gravar.");
   });
 
   /**********************
@@ -759,6 +764,29 @@
   $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
 
   /**********************
+   * Impressão do relatório (todas as linhas)
+   **********************/
+  $("#btnPrintReport").on("click", function () {
+    if (!monthlyReportTable) {
+      window.print();
+      return;
+    }
+
+    const oldLen = monthlyReportTable.page.len();
+    monthlyReportTable.page.len(-1).draw(); // -1 = todas as linhas [web:161]
+
+    setTimeout(() => {
+      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+      window.print();
+
+      // Restaura depois da impressão
+      setTimeout(() => {
+        monthlyReportTable.page.len(oldLen).draw();
+      }, 300);
+    }, 200);
+  });
+
+  /**********************
    * GOOGLE init (robusto)
    **********************/
   function maybeEnableSheetsButtons() {
@@ -797,7 +825,6 @@
           }
           hasToken = true;
           setSheetsStatus("Sheets: autenticado", "ok");
-          // Após login, a ação (carregar/salvar) é chamada por quem pediu
         }
       });
       gisInited = true;
@@ -825,7 +852,7 @@
         setSheetsStatus("Sheets: autenticado", "ok");
         resolve(true);
       };
-      tokenClient.requestAccessToken({ prompt: "" }); // tenta silencioso; se precisar, o Google abre consent
+      tokenClient.requestAccessToken({ prompt: "" });
     });
   }
 
@@ -846,9 +873,8 @@
 
       const rows = response.result.values || [];
 
-      if (rows.length <= 1) {
-        tableData = [];
-      } else {
+      if (rows.length <= 1) tableData = [];
+      else {
         tableData = rows.slice(1).map(row => normalizeRow({
           "DATA COMPRA": row[0] || "",
           "VALORES A RECEBER": row[1] || "",
@@ -876,7 +902,6 @@
     }
   }
 
-  // Salva tudo: escreve cabeçalho + todas as linhas de uma vez.
   async function saveAllToSheets() {
     const ok = await ensureAccessToken();
     if (!ok) { alert("Não foi possível autenticar no Google."); return; }
@@ -884,7 +909,6 @@
     try {
       setSheetsStatus("Sheets: salvando…", "warn");
 
-      // Monta matriz 2D (linhas x colunas) para o update
       const values = [
         HEADERS,
         ...tableData.map(r => ([
@@ -902,19 +926,17 @@
         ]))
       ];
 
-      // 1) Limpa a área A:K inteira para não sobrar lixo de linhas antigas
       await gapi.client.sheets.spreadsheets.values.clear({
         spreadsheetId: SPREADSHEET_ID,
         range: DATA_RANGE_A1
-      });
+      }); // clear values [web:104]
 
-      // 2) Escreve tudo a partir do A1
       await gapi.client.sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
         range: WRITE_START_A1,
         valueInputOption: "USER_ENTERED",
         resource: { values }
-      });
+      }); // update values [web:97]
 
       setSheetsStatus("Sheets: salvo", "ok");
     } catch (err) {
@@ -944,4 +966,3 @@
 </script>
 </body>
 </html>
-
