@@ -94,6 +94,9 @@
       .modal-backdrop { display: none !important; }
       .modal { overflow: visible !important; }
       .modal-dialog { max-width: 100% !important; }
+
+      /* REMOVER filtros na impressão */
+      .no-print { display: none !important; } /* padrão clássico p/ print [web:156][web:158] */
     }
   </style>
 </head>
@@ -258,7 +261,9 @@
         </div>
 
         <div class="modal-body">
-          <div class="row">
+
+          <!-- Filtros: aparecem na tela, mas NÃO aparecem na impressão -->
+          <div class="row no-print">
             <div class="col-md-4 mb-3">
               <label for="monthInput">Mês/Ano</label>
               <input type="month" id="monthInput" class="form-control month-input" />
@@ -316,9 +321,6 @@
   </div>
 
 <script>
-  /**********************
-   * CONFIGURAÇÕES SHEETS
-   **********************/
   const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
   const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
   const SHEET_NAME = "Sheet1";
@@ -333,21 +335,14 @@
   let gisInited = false;
   let hasToken = false;
 
-  /**********************
-   * DADOS / TABELAS
-   **********************/
   let tableData = [];
   let dataTable = null;
   let monthlyReportTable = null;
 
-  /**********************
-   * Helpers (money/date)
-   **********************/
   function formatMoneyBR(num) {
     if (isNaN(num) || num === null) return "R$ 0,00";
     return "R$ " + Number(num).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
-
   function parseMoneyBR(str) {
     if (str === null || str === undefined) return 0;
     const cleaned = String(str).replace(/\s/g, "").replace(/^R\$/i, "").replace(/[^0-9,.\-]/g, "");
@@ -355,19 +350,16 @@
     if (cleaned.includes(",")) return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
     return parseFloat(cleaned) || 0;
   }
-
   function parseDateBR(s) {
     if (!s) return null;
     const [d, m, y] = String(s).split("/");
     return (y && m && d) ? new Date(y, m - 1, d) : null;
   }
-
   function formatDateBR(date) {
     const d = String(date.getDate()).padStart(2, "0");
     const m = String(date.getMonth() + 1).padStart(2, "0");
     return `${d}/${m}/${date.getFullYear()}`;
   }
-
   function addMonthsToDateBR(s, months) {
     const d = parseDateBR(s);
     if (!d) return s;
@@ -401,9 +393,6 @@
     };
   }
 
-  /**********************
-   * UI updates
-   **********************/
   function updateAutoCompleteOptions() {
     const receberSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
     const cartaoSet  = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
@@ -500,11 +489,7 @@
     });
   }
 
-  /**********************
-   * CSV import/export
-   **********************/
   $("#btnImportCSV").on("click", () => $("#fileInput").click());
-
   $("#fileInput").on("change", function (e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -560,9 +545,6 @@
     document.body.removeChild(link);
   });
 
-  /**********************
-   * Add parcelas
-   **********************/
   $("#btnAddRow").on("click", function () {
     $("#addRowForm").slideToggle(300);
     updateAutoCompleteOptions();
@@ -583,10 +565,7 @@
     this.value = v;
   });
 
-  $("#newValorTotal").on("input", function () {
-    this.value = this.value.replace(/[^0-9,.\-]/g, "");
-  });
-
+  $("#newValorTotal").on("input", function () { this.value = this.value.replace(/[^0-9,.\-]/g, ""); });
   $("#newValorTotal, #newTotalParcelas").on("input change", function () {
     const total = parseMoneyBR($("#newValorTotal").val());
     const parc = parseInt($("#newTotalParcelas").val()) || 1;
@@ -635,9 +614,6 @@
     else alert("Parcelas adicionadas. Clique em “Salvar no Sheets” para gravar.");
   });
 
-  /**********************
-   * Excluir / Marcar Pago
-   **********************/
   $("#btnExcluirRegistro").on("click", async function () {
     const selecionados = $(".row-checkbox:checked").length;
     if (selecionados === 0) { alert("Selecione pelo menos um registro para excluir."); return; }
@@ -685,9 +661,6 @@
     alert("Totais atualizados com sucesso!");
   });
 
-  /**********************
-   * Relatórios Mensais
-   **********************/
   function updateReport() {
     const monthValue = $("#monthInput").val();
     const recipient = $("#recipientSelect").val();
@@ -763,32 +736,19 @@
 
   $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
 
-  /**********************
-   * Impressão do relatório (todas as linhas)
-   **********************/
+  // Imprimir relatório: imprime todas as linhas (não só a página)
   $("#btnPrintReport").on("click", function () {
-    if (!monthlyReportTable) {
-      window.print();
-      return;
-    }
-
+    if (!monthlyReportTable) { window.print(); return; }
     const oldLen = monthlyReportTable.page.len();
-    monthlyReportTable.page.len(-1).draw(); // -1 = todas as linhas [web:161]
+    monthlyReportTable.page.len(-1).draw(); // -1 = todas [web:161]
 
     setTimeout(() => {
       try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
       window.print();
-
-      // Restaura depois da impressão
-      setTimeout(() => {
-        monthlyReportTable.page.len(oldLen).draw();
-      }, 300);
+      setTimeout(() => monthlyReportTable.page.len(oldLen).draw(), 300);
     }, 200);
   });
 
-  /**********************
-   * GOOGLE init (robusto)
-   **********************/
   function maybeEnableSheetsButtons() {
     if (gapiInited && gisInited) {
       document.getElementById("btnLoadSheets").disabled = false;
@@ -856,21 +816,16 @@
     });
   }
 
-  /**********************
-   * Ler/Salvar no Sheets
-   **********************/
   async function loadFromSheets() {
     const ok = await ensureAccessToken();
     if (!ok) { alert("Não foi possível autenticar no Google."); return; }
 
     try {
       setSheetsStatus("Sheets: carregando…", "warn");
-
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: DATA_RANGE_A1
       });
-
       const rows = response.result.values || [];
 
       if (rows.length <= 1) tableData = [];
@@ -929,14 +884,14 @@
       await gapi.client.sheets.spreadsheets.values.clear({
         spreadsheetId: SPREADSHEET_ID,
         range: DATA_RANGE_A1
-      }); // clear values [web:104]
+      });
 
       await gapi.client.sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
         range: WRITE_START_A1,
         valueInputOption: "USER_ENTERED",
         resource: { values }
-      }); // update values [web:97]
+      });
 
       setSheetsStatus("Sheets: salvo", "ok");
     } catch (err) {
@@ -949,9 +904,6 @@
   $("#btnLoadSheets").on("click", loadFromSheets);
   $("#btnSaveSheets").on("click", saveAllToSheets);
 
-  /**********************
-   * Inicialização do app
-   **********************/
   $(document).ready(function () {
     setSheetsStatus("Sheets: aguardando bibliotecas…", "warn");
     tableData = [];
