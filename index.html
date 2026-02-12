@@ -5,21 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Controle Financeiro - Dayerre</title>
 
-  <!-- Bootstrap -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/plug-ins/1.13.6/sorting/date-eu.js"></script>
 
-  <!-- PapaParse -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <!-- Google APIs (com onload para evitar corrida de carregamento) -->
+  <!-- Google APIs (com onload) -->
   <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
   <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 
@@ -27,8 +24,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
       background: #f0f2f5;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       min-height: 100vh;
       font-size: 14px;
     }
@@ -58,20 +54,11 @@
       border-radius: 16px;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    .summary-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-    }
+    .summary-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
     .summary-icon { font-size: 2.5rem; margin-bottom: 12px; }
     .summary-value { font-size: 2rem; font-weight: 700; }
 
-    tfoot input {
-      width: 100%;
-      padding: 6px;
-      font-size: 0.9em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
+    tfoot input { width: 100%; padding: 6px; font-size: 0.9em; border: 1px solid #ccc; border-radius: 4px; }
     .edit-cell { cursor: pointer; padding: 6px !important; font-size: 13px; }
     .edit-cell:hover { background: #f0f8ff !important; }
     #addRowForm { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 16px; display: none; }
@@ -85,6 +72,11 @@
     #monthlyReportModal .modal-dialog { max-width: 95%; }
     #monthlyReportTable td, #monthlyReportTable th { padding: 6px !important; font-size: 13px; }
     .month-input { width: 180px; }
+
+    /* Melhor para celular: botões quebram linha bonito */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .toolbar .btn { margin: 0 !important; }
+    .status-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; }
   </style>
 </head>
 
@@ -117,27 +109,39 @@
           </div>
         </div>
       </div>
+
+      <div class="d-flex flex-wrap justify-content-between align-items-center mt-2" style="gap:10px;">
+        <div>
+          <span id="sheetsStatus" class="status-pill bg-light text-secondary">Sheets: aguardando…</span>
+        </div>
+        <div>
+          <label class="mb-0" style="user-select:none;">
+            <input type="checkbox" id="chkAutoSave" />
+            Salvar automático no Sheets
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="card">
       <h3>Lançamentos (Mais recente primeiro)</h3>
 
-      <div style="margin-bottom: 20px;">
-        <button id="btnImportCSV" class="btn btn-info mr-2 mb-2">Importar CSV</button>
-        <button id="btnExportCSV" class="btn btn-outline-primary mr-2 mb-2">Exportar CSV</button>
+      <div class="toolbar">
+        <button id="btnImportCSV" class="btn btn-info">Importar CSV</button>
+        <button id="btnExportCSV" class="btn btn-outline-primary">Exportar CSV</button>
 
-        <button id="btnAddRow" class="btn btn-primary mr-2 mb-2">+ Nova Parcela</button>
-        <button id="btnExcluirRegistro" class="btn btn-danger mr-2 mb-2">Excluir Registros</button>
-        <button id="btnMarcarPago" class="btn btn-success mr-2 mb-2">Marcar como Pago</button>
-        <button id="btnUpdateTotals" class="btn btn-secondary mr-2 mb-2">Atualizar Totais</button>
-        <button id="btnMonthlyReport" class="btn btn-info mr-2 mb-2">Relatórios Mensais</button>
+        <button id="btnAddRow" class="btn btn-primary">+ Nova Parcela</button>
+        <button id="btnExcluirRegistro" class="btn btn-danger">Excluir Registros</button>
+        <button id="btnMarcarPago" class="btn btn-success">Marcar como Pago</button>
+        <button id="btnUpdateTotals" class="btn btn-secondary">Atualizar Totais</button>
+        <button id="btnMonthlyReport" class="btn btn-info">Relatórios Mensais</button>
 
-        <button id="btnSyncSheets" class="btn btn-warning mb-2" disabled>Carregar do Google Sheets</button>
+        <button id="btnLoadSheets" class="btn btn-warning" disabled>Carregar do Sheets</button>
+        <button id="btnSaveSheets" class="btn btn-warning" disabled>Salvar no Sheets</button>
 
         <input type="file" id="fileInput" accept=".csv" style="display:none;" />
       </div>
 
-      <!-- Formulário Nova Parcela -->
       <div id="addRowForm" style="display:none;">
         <div class="card bg-light mb-4">
           <div class="card-body">
@@ -298,12 +302,17 @@
    **********************/
   const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
   const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
-  const SHEET_NAME = "Sheet1"; // se sua aba for "Folha1", troque aqui
+  const SHEET_NAME = "Sheet1"; // ajuste se sua aba for "Folha1"
   const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+
+  const HEADERS = ["DATA COMPRA","VALORES A RECEBER","DESCRIÇÃO","LOJA","VALOR TOTAL","CARTÃO","TOTAL PARCELAS","PARCELA","VALOR PARCELA","DATA PAGTO","STATUS"];
+  const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;   // leitura
+  const WRITE_START_A1 = `${SHEET_NAME}!A1`;  // escrita (salvar tudo)
 
   let tokenClient = null;
   let gapiInited = false;
   let gisInited = false;
+  let hasToken = false;
 
   /**********************
    * DADOS / TABELAS
@@ -323,17 +332,9 @@
   // Aceita: "12,34", "1.234,56", "R$ 1.234,56", "1234.56", "R$1234,56"
   function parseMoneyBR(str) {
     if (str === null || str === undefined) return 0;
-
-    const cleaned = String(str)
-      .replace(/\s/g, "")
-      .replace(/^R\$/i, "")
-      .replace(/[^0-9,.\-]/g, "");
-
+    const cleaned = String(str).replace(/\s/g, "").replace(/^R\$/i, "").replace(/[^0-9,.\-]/g, "");
     if (!cleaned) return 0;
-
-    if (cleaned.includes(",")) {
-      return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
-    }
+    if (cleaned.includes(",")) return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
     return parseFloat(cleaned) || 0;
   }
 
@@ -356,18 +357,30 @@
     return formatDateBR(d);
   }
 
-  /**********************
-   * Cache local (opcional)
-   **********************/
-  function saveDataToStorage() {
-    localStorage.setItem("controleFinanceiroDayerre_cache", JSON.stringify(tableData));
+  function setSheetsStatus(text, kind) {
+    const el = document.getElementById("sheetsStatus");
+    el.textContent = text;
+    el.classList.remove("bg-light","bg-success","bg-warning","bg-danger","text-secondary","text-dark","text-white");
+    if (kind === "ok") el.classList.add("bg-success","text-white");
+    else if (kind === "warn") el.classList.add("bg-warning","text-dark");
+    else if (kind === "err") el.classList.add("bg-danger","text-white");
+    else el.classList.add("bg-light","text-secondary");
   }
 
-  function loadCacheFromStorage() {
-    const saved = localStorage.getItem("controleFinanceiroDayerre_cache");
-    if (saved) {
-      try { tableData = JSON.parse(saved) || []; } catch(e) { tableData = []; }
-    }
+  function normalizeRow(r) {
+    return {
+      "DATA COMPRA": (r["DATA COMPRA"] || "").trim(),
+      "VALORES A RECEBER": (r["VALORES A RECEBER"] || "").trim(),
+      "DESCRIÇÃO": (r["DESCRIÇÃO"] || "").trim(),
+      "LOJA": (r["LOJA"] || "").trim(),
+      "VALOR TOTAL": formatMoneyBR(parseMoneyBR(r["VALOR TOTAL"] || "0")),
+      "CARTÃO": (r["CARTÃO"] || "").trim(),
+      "TOTAL PARCELAS": parseInt(r["TOTAL PARCELAS"]) || 1,
+      "PARCELA": parseInt(r["PARCELA"]) || 1,
+      "VALOR PARCELA": formatMoneyBR(parseMoneyBR(r["VALOR PARCELA"] || "0")),
+      "DATA PAGTO": (r["DATA PAGTO"] || "").trim(),
+      "STATUS": (r["STATUS"] || "Em aberto").trim() || "Em aberto"
+    };
   }
 
   /**********************
@@ -385,14 +398,12 @@
 
   function updateDashboard() {
     let totalG = 0, pago = 0, apagar = 0;
-
     tableData.forEach(r => {
       const v = parseMoneyBR(r["VALOR PARCELA"]);
       totalG += v;
       if (r["STATUS"] === "Pago") pago += v;
       else apagar += v;
     });
-
     $("#totalGeral").text(formatMoneyBR(totalG));
     $("#totalPago").text(formatMoneyBR(pago));
     $("#totalAPagar").text(formatMoneyBR(apagar));
@@ -444,7 +455,7 @@
       $(this).html(input);
       input.focus().select();
 
-      input.on("blur", function () {
+      input.on("blur", async function () {
         let newVal = input.val().trim();
 
         if (field.includes("VALOR")) {
@@ -455,14 +466,21 @@
 
         cell.data(newVal);
         dataTable.draw(false);
+
+        // mantém o array tableData consistente com a linha editada
+        const rowIdx = cell.index().row;
+        tableData[rowIdx][field] = newVal;
+        tableData[rowIdx] = normalizeRow(tableData[rowIdx]);
+
         updateDashboard();
         updateAutoCompleteOptions();
-        saveDataToStorage();
+
+        if ($("#chkAutoSave").prop("checked")) {
+          await saveAllToSheets();
+        }
       });
 
-      input.on("keypress", function (e) {
-        if (e.which === 13) input.blur();
-      });
+      input.on("keypress", function (e) { if (e.which === 13) input.blur(); });
     });
 
     $("#selectAll").off("change").on("change", function () {
@@ -484,22 +502,22 @@
       skipEmptyLines: true,
       delimiter: ",",
       transformHeader: h => h.trim().toUpperCase().replace(/\s+/g, " "),
-      complete: function (results) {
+      complete: async function (results) {
         if (results.errors && results.errors.length > 0) {
           alert("Erro ao ler o CSV: " + results.errors.map(e => e.message).join(", "));
           return;
         }
 
-        tableData = (results.data || []).map(row => ({
+        tableData = (results.data || []).map(row => normalizeRow({
           "DATA COMPRA": row["DATA COMPRA"] || "",
           "VALORES A RECEBER": row["VALORES A RECEBER"] || "",
           "DESCRIÇÃO": row["DESCRIÇÃO"] || "",
           "LOJA": row["LOJA"] || "",
-          "VALOR TOTAL": formatMoneyBR(parseMoneyBR(row["VALOR TOTAL"] || "0")),
+          "VALOR TOTAL": row["VALOR TOTAL"] || "0",
           "CARTÃO": row["CARTÃO UTILIZADO"] || row["CARTAO"] || row["CARTÃO"] || "",
-          "TOTAL PARCELAS": parseInt(row["TOTAL PARCELAS"] || row["TOTAL PARC."]) || 1,
-          "PARCELA": parseInt(row["PARCELA ATUAL"] || row["PARCELA"]) || 1,
-          "VALOR PARCELA": formatMoneyBR(parseMoneyBR(row["VALOR PARCELA"] || "0")),
+          "TOTAL PARCELAS": row["TOTAL PARCELAS"] || row["TOTAL PARC."] || 1,
+          "PARCELA": row["PARCELA ATUAL"] || row["PARCELA"] || 1,
+          "VALOR PARCELA": row["VALOR PARCELA"] || "0",
           "DATA PAGTO": row["DATA PAGAMENTO"] || row["DATA PAGTO"] || "",
           "STATUS": row["STATUS"] || "Em aberto"
         })).filter(r => r["DATA COMPRA"] || r["DESCRIÇÃO"] || parseMoneyBR(r["VALOR PARCELA"]) > 0);
@@ -507,11 +525,12 @@
         initTable();
         updateDashboard();
         updateAutoCompleteOptions();
-        saveDataToStorage();
-        alert(`Importados ${tableData.length} registros com sucesso!`);
-      },
-      error: function (err) {
-        alert("Erro ao processar o CSV: " + err);
+
+        if ($("#chkAutoSave").prop("checked")) {
+          await saveAllToSheets();
+        } else {
+          alert("Importado. Clique em “Salvar no Sheets” para gravar.");
+        }
       }
     });
 
@@ -565,7 +584,7 @@
     $("#newValorParcela").val(formatMoneyBR(total / parc));
   });
 
-  $("#newRowForm").on("submit", function (e) {
+  $("#newRowForm").on("submit", async function (e) {
     e.preventDefault();
 
     const dataCompra = $("#newDataCompra").val().trim();
@@ -574,26 +593,24 @@
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataCompra)) { alert("Data da compra inválida! Use DD/MM/AAAA"); return; }
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataPrimeira)) { alert("Data da primeira parcela inválida! Use DD/MM/AAAA"); return; }
 
-    const base = {
+    const base = normalizeRow({
       "DATA COMPRA": dataCompra,
       "VALORES A RECEBER": $("#newReceber").val().trim(),
       "DESCRIÇÃO": $("#newDescricao").val().trim(),
       "LOJA": $("#newLoja").val().trim(),
-      "VALOR TOTAL": formatMoneyBR(parseMoneyBR($("#newValorTotal").val())),
+      "VALOR TOTAL": $("#newValorTotal").val(),
       "CARTÃO": $("#newCartao").val().trim(),
       "TOTAL PARCELAS": parseInt($("#newTotalParcelas").val()) || 1,
+      "PARCELA": 1,
+      "VALOR PARCELA": $("#newValorParcela").val(),
+      "DATA PAGTO": dataPrimeira,
       "STATUS": $("#newStatus").val()
-    };
+    });
 
-    const valorParcela = formatMoneyBR(parseMoneyBR($("#newValorParcela").val()));
-
-    for (let i = 1; i <= base["TOTAL PARCELAS"]; i++) {
-      tableData.push({
-        ...base,
-        "PARCELA": i,
-        "VALOR PARCELA": valorParcela,
-        "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1)
-      });
+    const totalParcelas = base["TOTAL PARCELAS"];
+    for (let i = 1; i <= totalParcelas; i++) {
+      const r = { ...base, "PARCELA": i, "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1) };
+      tableData.push(normalizeRow(r));
     }
 
     tableData.sort((a, b) => (parseDateBR(b["DATA COMPRA"]) - parseDateBR(a["DATA COMPRA"])));
@@ -601,17 +618,21 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
-    saveDataToStorage();
 
     this.reset();
     $("#addRowForm").slideUp(300);
-    alert("Parcelas adicionadas com sucesso!");
+
+    if ($("#chkAutoSave").prop("checked")) {
+      await saveAllToSheets();
+    } else {
+      alert("Parcelas adicionadas. Clique em “Salvar no Sheets” para gravar.");
+    }
   });
 
   /**********************
-   * Excluir / Marcar Pago / Atualizar
+   * Excluir / Marcar Pago
    **********************/
-  $("#btnExcluirRegistro").on("click", function () {
+  $("#btnExcluirRegistro").on("click", async function () {
     const selecionados = $(".row-checkbox:checked").length;
     if (selecionados === 0) { alert("Selecione pelo menos um registro para excluir."); return; }
     if (!confirm(`Tem certeza que deseja excluir ${selecionados} registros?`)) return;
@@ -628,30 +649,27 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
-    saveDataToStorage();
-    alert(`${selecionados} registros excluídos com sucesso!`);
+
+    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
   });
 
-  $("#btnMarcarPago").on("click", function () {
+  $("#btnMarcarPago").on("click", async function () {
     const selecionados = $(".row-checkbox:checked").length;
     if (selecionados === 0) { alert("Selecione pelo menos um registro para marcar como pago."); return; }
     if (!confirm(`Tem certeza que deseja marcar ${selecionados} registros como PAGO?`)) return;
 
-    let mudou = 0;
     $(".row-checkbox:checked").each(function () {
       const row = $(this).closest("tr");
       const idx = dataTable.row(row).index();
-      if (tableData[idx] && tableData[idx]["STATUS"] === "Em aberto") {
-        tableData[idx]["STATUS"] = "Pago";
-        mudou++;
-      }
+      if (tableData[idx]) tableData[idx]["STATUS"] = "Pago";
+      tableData[idx] = normalizeRow(tableData[idx]);
     });
 
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
-    saveDataToStorage();
-    alert(mudou > 0 ? `${mudou} registros marcados como PAGO com sucesso!` : "Nenhum registro selecionado estava como Em aberto.");
+
+    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
   });
 
   $("#btnUpdateTotals").on("click", function () {
@@ -740,119 +758,187 @@
   $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
 
   /**********************
-   * GOOGLE - Inicialização robusta (sem corrida)
+   * GOOGLE init (robusto)
    **********************/
-  function maybeEnableSheetsButton() {
+  function maybeEnableSheetsButtons() {
     if (gapiInited && gisInited) {
-      const btn = document.getElementById("btnSyncSheets");
-      if (btn) btn.disabled = false;
+      document.getElementById("btnLoadSheets").disabled = false;
+      document.getElementById("btnSaveSheets").disabled = false;
+      setSheetsStatus("Sheets: pronto (faça login para carregar/salvar)", "warn");
     }
   }
 
-  // Chamado pelo onload do https://apis.google.com/js/api.js
   window.gapiLoaded = function () {
     gapi.load("client", async () => {
       try {
         await gapi.client.init({ discoveryDocs: [DISCOVERY_DOC] });
         gapiInited = true;
-        maybeEnableSheetsButton();
+        maybeEnableSheetsButtons();
       } catch (e) {
         console.error("Falha ao inicializar gapi.client:", e);
+        setSheetsStatus("Sheets: erro ao iniciar gapi", "err");
         alert("Falha ao inicializar Google API (gapi). Veja o console (F12).");
       }
     });
   };
 
-  // Chamado pelo onload do https://accounts.google.com/gsi/client
   window.gisLoaded = function () {
     try {
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: "https://www.googleapis.com/auth/spreadsheets",
         callback: (tokenResponse) => {
-          if (tokenResponse.error) {
+          if (tokenResponse && tokenResponse.error) {
             console.error("Erro OAuth:", tokenResponse);
+            setSheetsStatus("Sheets: erro no login", "err");
             alert("Erro na autorização: " + tokenResponse.error);
             return;
           }
-          loadDataFromSheets();
+          hasToken = true;
+          setSheetsStatus("Sheets: autenticado", "ok");
+          // Após login, a ação (carregar/salvar) é chamada por quem pediu
         }
       });
       gisInited = true;
-      maybeEnableSheetsButton();
+      maybeEnableSheetsButtons();
     } catch (e) {
       console.error("Falha ao inicializar GIS tokenClient:", e);
+      setSheetsStatus("Sheets: erro ao iniciar login", "err");
       alert("Falha ao inicializar Google Identity Services. Veja o console (F12).");
     }
   };
 
-  function syncWithSheets() {
-    if (!tokenClient) {
-      alert("Aguarde as bibliotecas do Google carregarem.");
-      return;
-    }
-    tokenClient.requestAccessToken({ prompt: "consent" });
+  async function ensureAccessToken() {
+    if (hasToken) return true;
+    if (!tokenClient) return false;
+
+    return new Promise((resolve) => {
+      tokenClient.callback = (tokenResponse) => {
+        if (tokenResponse && tokenResponse.error) {
+          console.error("Erro OAuth:", tokenResponse);
+          setSheetsStatus("Sheets: erro no login", "err");
+          resolve(false);
+          return;
+        }
+        hasToken = true;
+        setSheetsStatus("Sheets: autenticado", "ok");
+        resolve(true);
+      };
+      tokenClient.requestAccessToken({ prompt: "" }); // tenta silencioso; se precisar, o Google abre consent
+    });
   }
 
-  async function loadDataFromSheets() {
+  /**********************
+   * Ler/Salvar no Sheets
+   **********************/
+  async function loadFromSheets() {
+    const ok = await ensureAccessToken();
+    if (!ok) { alert("Não foi possível autenticar no Google."); return; }
+
     try {
+      setSheetsStatus("Sheets: carregando…", "warn");
+
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:K`
+        range: DATA_RANGE_A1
       });
 
       const rows = response.result.values || [];
 
       if (rows.length <= 1) {
         tableData = [];
-        initTable();
-        updateDashboard();
-        updateAutoCompleteOptions();
-        alert("Planilha vazia ou sem dados.");
-        return;
+      } else {
+        tableData = rows.slice(1).map(row => normalizeRow({
+          "DATA COMPRA": row[0] || "",
+          "VALORES A RECEBER": row[1] || "",
+          "DESCRIÇÃO": row[2] || "",
+          "LOJA": row[3] || "",
+          "VALOR TOTAL": row[4] || "0",
+          "CARTÃO": row[5] || "",
+          "TOTAL PARCELAS": row[6] || 1,
+          "PARCELA": row[7] || 1,
+          "VALOR PARCELA": row[8] || "0",
+          "DATA PAGTO": row[9] || "",
+          "STATUS": row[10] || "Em aberto"
+        }));
       }
-
-      tableData = rows.slice(1).map(row => ({
-        "DATA COMPRA": row[0] || "",
-        "VALORES A RECEBER": row[1] || "",
-        "DESCRIÇÃO": row[2] || "",
-        "LOJA": row[3] || "",
-        "VALOR TOTAL": formatMoneyBR(parseMoneyBR(row[4] || "0")),
-        "CARTÃO": row[5] || "",
-        "TOTAL PARCELAS": parseInt(row[6]) || 1,
-        "PARCELA": parseInt(row[7]) || 1,
-        "VALOR PARCELA": formatMoneyBR(parseMoneyBR(row[8] || "0")),
-        "DATA PAGTO": row[9] || "",
-        "STATUS": row[10] || "Em aberto"
-      }));
 
       initTable();
       updateDashboard();
       updateAutoCompleteOptions();
-      saveDataToStorage();
 
-      alert("Dados carregados do Google Sheets com sucesso!");
+      setSheetsStatus("Sheets: carregado", "ok");
     } catch (err) {
       console.error("Erro ao carregar planilha:", err);
-      alert("Erro ao carregar dados. Veja o console (F12) para detalhes.");
+      setSheetsStatus("Sheets: erro ao carregar", "err");
+      alert("Erro ao carregar do Sheets. Veja o console (F12).");
     }
   }
 
-  $("#btnSyncSheets").on("click", syncWithSheets);
+  // Salva tudo: escreve cabeçalho + todas as linhas de uma vez.
+  async function saveAllToSheets() {
+    const ok = await ensureAccessToken();
+    if (!ok) { alert("Não foi possível autenticar no Google."); return; }
+
+    try {
+      setSheetsStatus("Sheets: salvando…", "warn");
+
+      // Monta matriz 2D (linhas x colunas) para o update
+      const values = [
+        HEADERS,
+        ...tableData.map(r => ([
+          r["DATA COMPRA"],
+          r["VALORES A RECEBER"],
+          r["DESCRIÇÃO"],
+          r["LOJA"],
+          r["VALOR TOTAL"],
+          r["CARTÃO"],
+          String(r["TOTAL PARCELAS"]),
+          String(r["PARCELA"]),
+          r["VALOR PARCELA"],
+          r["DATA PAGTO"],
+          r["STATUS"]
+        ]))
+      ];
+
+      // 1) Limpa a área A:K inteira para não sobrar lixo de linhas antigas
+      await gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId: SPREADSHEET_ID,
+        range: DATA_RANGE_A1
+      });
+
+      // 2) Escreve tudo a partir do A1
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: WRITE_START_A1,
+        valueInputOption: "USER_ENTERED",
+        resource: { values }
+      });
+
+      setSheetsStatus("Sheets: salvo", "ok");
+    } catch (err) {
+      console.error("Erro ao salvar no Sheets:", err);
+      setSheetsStatus("Sheets: erro ao salvar", "err");
+      alert("Erro ao salvar no Sheets. Veja o console (F12).");
+    }
+  }
+
+  $("#btnLoadSheets").on("click", loadFromSheets);
+  $("#btnSaveSheets").on("click", saveAllToSheets);
 
   /**********************
    * Inicialização do app
    **********************/
   $(document).ready(function () {
-    // Opcional: mostra cache enquanto você carrega do Sheets
-    loadCacheFromStorage();
-
+    setSheetsStatus("Sheets: aguardando bibliotecas…", "warn");
+    tableData = [];
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
 
-    // começa desabilitado; habilita automaticamente quando gapi+gis ficarem prontos
-    document.getElementById("btnSyncSheets").disabled = true;
+    $("#chkAutoSave").prop("checked", false);
+    document.getElementById("btnLoadSheets").disabled = true;
+    document.getElementById("btnSaveSheets").disabled = true;
   });
 </script>
 </body>
