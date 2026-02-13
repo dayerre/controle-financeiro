@@ -66,7 +66,6 @@
     .dataTables_scrollBody { overflow-x: auto !important; }
 
     .money-cell { text-align: right; white-space: nowrap; font-weight: 500; }
-    .money-neg { color: #dc3545; font-weight: 700; }
 
     #monthlyReportModal .modal-dialog { max-width: 95%; }
     #monthlyReportTable td, #monthlyReportTable th { padding: 6px !important; font-size: 13px; }
@@ -81,6 +80,26 @@
     .tag {
       display:inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px;
       background:#eef2ff; color:#2b3a67; margin-right: 6px; margin-top: 4px;
+    }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #monthlyReportModal, #monthlyReportModal * { visibility: visible !important; }
+
+      #monthlyReportModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .modal-backdrop { display: none !important; }
+      .modal { overflow: visible !important; }
+      .modal-dialog { max-width: 100% !important; }
+
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -135,11 +154,6 @@
         <button id="btnAddRow" class="btn btn-primary" type="button">+ Nova Parcela</button>
         <button id="btnExcluirRegistro" class="btn btn-danger" type="button">Excluir Registros</button>
         <button id="btnMarcarPago" class="btn btn-success" type="button">Marcar como Pago</button>
-
-        <button id="btnEstornarCompra" class="btn btn-outline-danger" type="button">
-          <i class="bi bi-arrow-counterclockwise"></i> Estornar/Cancelar compra
-        </button>
-
         <button id="btnUpdateTotals" class="btn btn-secondary" type="button">Atualizar Totais</button>
         <button id="btnMonthlyReport" class="btn btn-info" type="button">Relatórios Mensais</button>
 
@@ -499,13 +513,6 @@
     if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
   }
 
-  function renderMoneyCell(d) {
-    const n = parseMoneyBR(d);
-    const txt = formatMoneyBR(n);
-    if (n < 0) return `<span class="money-neg">${txt}</span>`;
-    return txt;
-  }
-
   function initTable() {
     if (dataTable) dataTable.destroy();
 
@@ -517,11 +524,11 @@
         { data: "VALORES A RECEBER", className: "edit-cell" },
         { data: "DESCRIÇÃO", className: "edit-cell" },
         { data: "LOJA", className: "edit-cell" },
-        { data: "VALOR TOTAL", render: d => renderMoneyCell(d), className: "edit-cell money-cell" },
+        { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)), className: "edit-cell money-cell" },
         { data: "CARTÃO", className: "edit-cell" },
         { data: "TOTAL PARCELAS", className: "edit-cell text-center" },
         { data: "PARCELA", className: "edit-cell text-center" },
-        { data: "VALOR PARCELA", render: d => renderMoneyCell(d), className: "edit-cell money-cell" },
+        { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)), className: "edit-cell money-cell" },
         { data: "DATA PAGTO", className: "edit-cell" },
         { data: "STATUS", className: "edit-cell" }
       ],
@@ -537,7 +544,7 @@
       const field = dataTable.column(cell.index().column).header().textContent.trim();
       const oldVal = cell.data();
 
-      const input = $(`<input type="text" class="form-control form-control-sm" value="${String(oldVal ?? "").replace(/<[^>]*>/g,"")}">`);
+      const input = $(`<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}">`);
       $(this).html(input);
       input.focus().select();
 
@@ -567,110 +574,6 @@
       $(".row-checkbox").prop("checked", this.checked);
     });
   }
-
-  // ====== ESTORNO/CANCELAMENTO (grupo inteiro) ======
-  function getSelectedRowIndexes() {
-    const indices = [];
-    $(".row-checkbox:checked").each(function () {
-      const row = $(this).closest("tr");
-      const idx = dataTable.row(row).index();
-      if (idx !== null && idx !== undefined) indices.push(idx);
-    });
-    return indices;
-  }
-
-  function buildGroupKey(r) {
-    return [
-      (r["DATA COMPRA"] || "").trim(),
-      (r["VALORES A RECEBER"] || "").trim(),
-      (r["DESCRIÇÃO"] || "").trim(),
-      (r["LOJA"] || "").trim(),
-      formatMoneyBR(parseMoneyBR(r["VALOR TOTAL"] || "0")),
-      (r["CARTÃO"] || "").trim(),
-      String(parseInt(r["TOTAL PARCELAS"]) || 1)
-    ].join("||");
-  }
-
-  function isReversalRow(r) {
-    const v = parseMoneyBR(r["VALOR PARCELA"]);
-    const desc = (r["DESCRIÇÃO"] || "").trim().toUpperCase();
-    return v < 0 || desc.startsWith("ESTORNO -");
-  }
-
-  function hasExistingReversalFor(row, allRows) {
-    const key = buildGroupKey(row);
-    const parcela = String(parseInt(row["PARCELA"]) || 1);
-    const v = Math.abs(parseMoneyBR(row["VALOR PARCELA"]));
-    return allRows.some(x => {
-      if (buildGroupKey(x) !== key) return false;
-      if (String(parseInt(x["PARCELA"]) || 1) !== parcela) return false;
-      return parseMoneyBR(x["VALOR PARCELA"]) === -v;
-    });
-  }
-
-  $("#btnEstornarCompra").off("click").on("click", async function () {
-    const idxs = getSelectedRowIndexes();
-    if (idxs.length !== 1) {
-      alert("Selecione exatamente 1 registro (uma parcela) para estornar a compra inteira.");
-      return;
-    }
-
-    const selected = tableData[idxs[0]];
-    if (!selected) return;
-
-    if (isReversalRow(selected)) {
-      alert("Você selecionou um estorno (valor negativo). Selecione uma parcela da compra original.");
-      return;
-    }
-
-    const groupKey = buildGroupKey(selected);
-    const groupRows = tableData
-      .filter(r => buildGroupKey(r) === groupKey)
-      .filter(r => !isReversalRow(r));
-
-    if (groupRows.length === 0) {
-      alert("Não encontrei outras parcelas para este grupo.");
-      return;
-    }
-
-    const dataEstorno = prompt("Data do estorno (DD/MM/AAAA):", formatDateBR(new Date()));
-    if (!dataEstorno) return;
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataEstorno.trim())) {
-      alert("Data inválida. Use DD/MM/AAAA.");
-      return;
-    }
-
-    if (!confirm(`Vou criar estorno para ${groupRows.length} parcela(s). Confirmar?`)) return;
-
-    let created = 0;
-    let skipped = 0;
-
-    groupRows.forEach(orig => {
-      if (hasExistingReversalFor(orig, tableData)) { skipped++; return; }
-
-      const estorno = normalizeRow({
-        ...orig,
-        "DESCRIÇÃO": `ESTORNO - ${orig["DESCRIÇÃO"] || ""}`.trim(),
-        "VALOR TOTAL": formatMoneyBR(-Math.abs(parseMoneyBR(orig["VALOR TOTAL"]))),
-        "VALOR PARCELA": formatMoneyBR(-Math.abs(parseMoneyBR(orig["VALOR PARCELA"]))),
-        "DATA PAGTO": dataEstorno.trim(),
-        "STATUS": "Pago"
-      });
-
-      tableData.push(estorno);
-      created++;
-    });
-
-    tableData.sort((a, b) => (parseDateBR(b["DATA COMPRA"]) - parseDateBR(a["DATA COMPRA"])));
-
-    initTable();
-    updateDashboard();
-    updateAutoCompleteOptions();
-
-    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
-
-    alert(`Estorno concluído.\nCriados: ${created}\nIgnorados (já existiam): ${skipped}`);
-  });
 
   // ---- Limites v3
   function loadCardLimits() {
@@ -741,7 +644,11 @@
     launchCards.forEach(txt => {
       const exists = cardLimits.some(it => (it.aliases || []).includes(txt));
       if (!exists) {
-        const already = cardLimits.some(it => (it.total === null || it.total === undefined) && (it.aliases || []).length === 1 && it.aliases[0] === txt);
+        const already = cardLimits.some(it =>
+          (it.total === null || it.total === undefined) &&
+          (it.aliases || []).length === 1 &&
+          it.aliases[0] === txt
+        );
         if (!already) {
           cardLimits.push({
             id: "ph_" + txt,
@@ -902,6 +809,7 @@
     const item = cardLimits.find(x => x.id === id);
     if (!item) return;
     if (!confirm(`Excluir este cadastro de limite? (Não altera lançamentos)`)) return;
+
     cardLimits = cardLimits.filter(x => x.id !== id);
     saveCardLimits();
     updateAutoCompleteOptions();
@@ -1073,8 +981,80 @@
     alert("Totais atualizados com sucesso!");
   });
 
-  // ---- Relatórios (mantido como estava no seu arquivo-base)
+  // ========= RELATÓRIO (corrigido: recria a tabela toda vez) =========
+  function updateReportTotalsFromMonthlyTable() {
+    if (!monthlyReportTable) return;
+
+    let total = 0, pago = 0, apagar = 0;
+    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
+    rows.forEach(r => {
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      total += v;
+      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
+      else apagar += v;
+    });
+
+    $("#reportTotalGeral").text(formatMoneyBR(total));
+    $("#reportTotalPago").text(formatMoneyBR(pago));
+    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+  }
+
+  function buildMonthlyReportTable() {
+    if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      $("#monthlyReportTable").DataTable().destroy(true); /* remove wrapper/eventos */ /* [web:73] */
+    }
+
+    $("#monthlyReportTable").empty().append(`
+      <thead>
+        <tr>
+          <th>DATA COMPRA</th>
+          <th>VALORES A RECEBER</th>
+          <th>DESCRIÇÃO</th>
+          <th>LOJA</th>
+          <th>VALOR TOTAL</th>
+          <th>CARTÃO</th>
+          <th>PARCELA TOTAL</th>
+          <th>VALOR PARCELA</th>
+          <th>DATA PAGTO</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `);
+
+    monthlyReportTable = $("#monthlyReportTable").DataTable({
+      data: [],
+      columns: [
+        { data: "DATA COMPRA" },
+        { data: "VALORES A RECEBER" },
+        { data: "DESCRIÇÃO" },
+        { data: "LOJA" },
+        { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)) },
+        { data: "CARTÃO" },
+        { data: null, render: d => `${d["PARCELA"]}/${d["TOTAL PARCELAS"]}`, className: "text-center" },
+        { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)) },
+        { data: "DATA PAGTO" },
+        { data: "STATUS" }
+      ],
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100, -1],
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
+      dom: "frtip",
+      order: [[8, "asc"]],
+      autoWidth: false,
+      deferRender: true
+    });
+
+    monthlyReportTable.off("draw.updateTotals").on("draw.updateTotals", function () {
+      updateReportTotalsFromMonthlyTable();
+    });
+  }
+
   function updateReport() {
+    if (!monthlyReportTable || !$.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      buildMonthlyReportTable();
+    }
+
     const monthValue = $("#monthInput").val();
     const recipient = $("#recipientSelect").val();
     const card = $("#cardSelect").val();
@@ -1094,40 +1074,15 @@
       return true;
     });
 
-    let total = 0, pago = 0, apagar = 0;
-    filtered.forEach(r => {
-      const v = parseMoneyBR(r["VALOR PARCELA"]);
-      total += v;
-      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
-      else apagar += v;
-    });
+    monthlyReportTable.clear();
+    monthlyReportTable.rows.add(filtered);
+    monthlyReportTable.draw();
 
-    $("#reportTotalGeral").text(formatMoneyBR(total));
-    $("#reportTotalPago").text(formatMoneyBR(pago));
-    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+    updateReportTotalsFromMonthlyTable();
 
-    if (monthlyReportTable) monthlyReportTable.destroy();
-
-    monthlyReportTable = $("#monthlyReportTable").DataTable({
-      data: filtered,
-      columns: [
-        { data: "DATA COMPRA" },
-        { data: "VALORES A RECEBER" },
-        { data: "DESCRIÇÃO" },
-        { data: "LOJA" },
-        { data: "VALOR TOTAL", render: d => renderMoneyCell(d) },
-        { data: "CARTÃO" },
-        { data: null, render: d => `${d["PARCELA"]}/${d["TOTAL PARCELAS"]}`, className: "text-center" },
-        { data: "VALOR PARCELA", render: d => renderMoneyCell(d) },
-        { data: "DATA PAGTO" },
-        { data: "STATUS" }
-      ],
-      pageLength: 10,
-      lengthMenu: [10, 25, 50, 100, -1],
-      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
-      dom: "frtip",
-      order: [[8, "asc"]]
-    });
+    setTimeout(() => {
+      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+    }, 50);
   }
 
   $("#btnMonthlyReport").on("click", function () {
@@ -1142,12 +1097,30 @@
     selCard.empty().append(`<option value="Todos">Todos</option>`);
     Array.from(cardSet).sort().forEach(v => selCard.append(`<option value="${v}">${v}</option>`));
 
-    if (monthlyReportTable) monthlyReportTable.destroy();
-    updateReport();
     $("#monthlyReportModal").modal("show");
   });
 
   $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
+
+  $("#monthlyReportModal").on("shown.bs.modal", function () {
+    buildMonthlyReportTable();
+    updateReport();
+
+    setTimeout(() => {
+      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+    }, 50);
+  });
+
+  $("#monthlyReportModal").on("hidden.bs.modal", function () {
+    if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      $("#monthlyReportTable").DataTable().destroy(true); /* [web:73] */
+    }
+    monthlyReportTable = null;
+
+    $("#reportTotalGeral").text("R$ 0,00");
+    $("#reportTotalPago").text("R$ 0,00");
+    $("#reportTotalAPagar").text("R$ 0,00");
+  });
 
   $("#btnPrintReport").on("click", function () {
     if (!monthlyReportTable) { window.print(); return; }
@@ -1161,7 +1134,6 @@
     }, 200);
   });
 
-  // ---- Google Sheets
   function maybeEnableSheetsButtons() {
     if (gapiInited && gisInited) {
       document.getElementById("btnLoadSheets").disabled = false;
