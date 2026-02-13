@@ -77,6 +77,10 @@
 
     .limit-row-card { background:#f8f9fa; border-radius: 12px; padding: 12px; }
     .limit-table td, .limit-table th { font-size: 13px; padding: 8px !important; }
+    .tag {
+      display:inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px;
+      background:#eef2ff; color:#2b3a67; margin-right: 6px; margin-top: 4px;
+    }
   </style>
 </head>
 
@@ -170,7 +174,7 @@
                   <input type="text" class="form-control" id="newValorTotal" placeholder="R$ Valor Total" required />
                 </div>
                 <div class="col-md-3 mb-2">
-                  <input type="text" class="form-control" id="newCartao" list="cartaoOptions" placeholder="Cartão (ex.: Sicredi | Visa)" required />
+                  <input type="text" class="form-control" id="newCartao" list="cartaoOptions" placeholder="Cartão (ex.: BTG, SICREDI, XP...)" required />
                   <datalist id="cartaoOptions"></datalist>
                 </div>
                 <div class="col-md-2 mb-2">
@@ -237,37 +241,58 @@
           <div class="limit-row-card mb-3">
             <div class="form-row">
               <div class="col-md-4 mb-2">
-                <label>Selecionar cartão (dos lançamentos / já cadastrado)</label>
-                <select class="form-control" id="limitSelectCard">
-                  <option value="">(Novo cartão)</option>
+                <label>Escolher (dos lançamentos)</label>
+                <select class="form-control" id="limitLaunchCard">
+                  <option value="">(Selecionar...)</option>
                 </select>
+                <small class="text-muted">Escolha um texto que aparece no campo CARTÃO dos lançamentos (ex.: BTG).</small>
               </div>
+
               <div class="col-md-4 mb-2">
                 <label>Banco</label>
-                <input type="text" class="form-control" id="limitBank" placeholder="Ex.: Sicredi" />
+                <input type="text" class="form-control" id="limitBank" placeholder="Ex.: BTG Pactual" />
               </div>
+
               <div class="col-md-4 mb-2">
                 <label>Bandeira</label>
-                <input type="text" class="form-control" id="limitBrand" placeholder="Ex.: Visa" />
+                <input type="text" class="form-control" id="limitBrand" placeholder="Ex.: Mastercard" />
               </div>
             </div>
 
             <div class="form-row">
               <div class="col-md-4 mb-2">
-                <label>Chave (como aparece em CARTÃO)</label>
-                <input type="text" class="form-control" id="limitKey" placeholder="Ex.: Sicredi | Visa" />
-                <small class="text-muted">Precisa bater com o texto do campo CARTÃO nos lançamentos.</small>
+                <label>Categoria</label>
+                <input type="text" class="form-control" id="limitCategory" placeholder="Ex.: BLACK, GOLD, PLATINIUM" />
               </div>
+
               <div class="col-md-4 mb-2">
                 <label>Limite total</label>
-                <input type="text" class="form-control" id="limitTotal" placeholder="Ex.: 15000" />
+                <input type="text" class="form-control" id="limitTotal" placeholder="Ex.: 4500" />
               </div>
+
               <div class="col-md-4 mb-2 d-flex align-items-end">
                 <div class="w-100">
-                  <button class="btn btn-dark btn-block" id="btnAddLimit" type="button">Adicionar / Atualizar</button>
-                  <button class="btn btn-outline-secondary btn-block mt-2" id="btnClearLimitForm" type="button">Limpar</button>
+                  <button class="btn btn-dark btn-block" id="btnSaveLimit" type="button">Salvar / Atualizar</button>
+                  <button class="btn btn-outline-secondary btn-block mt-2" id="btnClearLimit" type="button">Limpar</button>
                 </div>
               </div>
+            </div>
+
+            <div class="form-row mt-2">
+              <div class="col-md-12">
+                <label>Textos do campo CARTÃO que pertencem a este cartão (aliases)</label>
+                <input type="text" class="form-control" id="limitAliases" placeholder="Ex.: BTG; BTG PACTUAL (separar por ; )" />
+                <small class="text-muted">O sistema soma “Em aberto” considerando todos esses textos como o mesmo cartão.</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-2" style="gap:10px;">
+            <div class="text-muted">
+              Você pode “Ocultar” itens como <strong>Débito</strong> e <strong>Depósito</strong> para não aparecerem aqui, sem alterar lançamentos.
+            </div>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm" id="btnShowHidden" type="button">Mostrar ocultos</button>
             </div>
           </div>
 
@@ -373,8 +398,11 @@
   const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
   const WRITE_START_A1 = `${SHEET_NAME}!A1`;
 
-  const LS_LIMITS_KEY = "cf_dayerre_card_limits_v2";
-  let cardLimits = []; // [{ id, bank, brand, key, total }]
+  // NOVO modelo:
+  // cardLimits = [{ id, bank, brand, category, total, aliases:[], hidden:false }]
+  const LS_LIMITS_KEY = "cf_dayerre_card_limits_v3";
+  let cardLimits = [];
+  let showHidden = false;
 
   let tokenClient = null;
   let gapiInited = false;
@@ -447,9 +475,9 @@
     $("#receberOptions").html(Array.from(receberSet).sort().map(v => `<option value="${v}"></option>`).join(""));
     $("#lojaOptions").html(Array.from(lojaSet).sort().map(v => `<option value="${v}"></option>`).join(""));
 
-    // mistura cartões dos lançamentos + dos limites cadastrados
-    const limitKeys = new Set(cardLimits.map(c => (c.key || "").trim()).filter(Boolean));
-    const merged = new Set([...cartaoSet, ...limitKeys]);
+    // Sugestões: cartões dos lançamentos + aliases cadastrados
+    const aliasSet = new Set((cardLimits || []).flatMap(c => (c.aliases || [])).filter(Boolean));
+    const merged = new Set([...cartaoSet, ...aliasSet]);
     $("#cartaoOptions").html(Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join(""));
   }
 
@@ -530,7 +558,7 @@
     });
   }
 
-  // ------- Limites (persistência)
+  // ---- Limites v3
   function loadCardLimits() {
     try {
       const raw = localStorage.getItem(LS_LIMITS_KEY);
@@ -544,177 +572,291 @@
     localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits || []));
   }
 
-  // ------- Cálculo em aberto por cartão
-  function sumOpenByCard() {
+  function getUniqueLaunchCards() {
+    return Array.from(new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)))
+      .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
+  }
+
+  function parseAliases(s) {
+    return Array.from(new Set(
+      String(s || "")
+        .split(";")
+        .map(x => x.trim())
+        .filter(Boolean)
+    ));
+  }
+
+  // soma em aberto por texto exato do CARTÃO
+  function sumOpenByLaunchCardText() {
     return tableData.reduce((acc, r) => {
       const card = (r["CARTÃO"] || "").trim();
       if (!card) return acc;
-
       const st = (r["STATUS"] || "").trim();
       if (st === "Pago") return acc;
-
       const v = parseMoneyBR(r["VALOR PARCELA"]);
       acc[card] = (acc[card] || 0) + v;
       return acc;
     }, {});
   }
 
-  // ------- UI limites
-  function clearLimitForm() {
-    $("#limitSelectCard").val("");
-    $("#limitBank").val("");
-    $("#limitBrand").val("");
-    $("#limitKey").val("");
-    $("#limitTotal").val("");
-    $("#btnAddLimit").data("editId", "");
+  // soma em aberto do cartão cadastrado (considerando aliases)
+  function sumOpenForLimitItem(item, openMap) {
+    const aliases = (item.aliases || []).map(x => String(x).trim()).filter(Boolean);
+    if (aliases.length === 0) return 0;
+    return aliases.reduce((sum, a) => sum + (openMap[a] || 0), 0);
   }
 
-  function populateLimitSelect() {
-    const sel = $("#limitSelectCard");
+  function clearLimitForm() {
+    $("#limitLaunchCard").val("");
+    $("#limitBank").val("");
+    $("#limitBrand").val("");
+    $("#limitCategory").val("");
+    $("#limitTotal").val("");
+    $("#limitAliases").val("");
+    $("#btnSaveLimit").data("editId", "");
+  }
+
+  function fillLaunchCardSelect() {
+    const sel = $("#limitLaunchCard");
     const current = sel.val() || "";
-    sel.empty();
-    sel.append(`<option value="">(Novo cartão)</option>`);
-
-    const fromLaunch = new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean));
-    const fromLimits = new Set(cardLimits.map(c => (c.key || "").trim()).filter(Boolean));
-    const merged = Array.from(new Set([...fromLaunch, ...fromLimits]))
-      .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
-
-    merged.forEach(k => sel.append(`<option value="${k}">${k}</option>`));
+    sel.empty().append(`<option value="">(Selecionar...)</option>`);
+    getUniqueLaunchCards().forEach(c => sel.append(`<option value="${c}">${c}</option>`));
     sel.val(current);
   }
 
-  function renderCardLimitsTable() {
-    populateLimitSelect();
+  // cria itens “não cadastrados” para poder ocultar/remover da lista
+  function ensurePlaceholderItemsForLaunchCards() {
+    const launchCards = getUniqueLaunchCards();
+    launchCards.forEach(txt => {
+      const exists = cardLimits.some(it => (it.aliases || []).includes(txt));
+      // Não cria placeholder se já existe em algum alias cadastrado
+      if (!exists) {
+        // placeholder fica sem total, mas permite ocultar
+        // só cria se ainda não existir placeholder com aliases=[txt]
+        const already = cardLimits.some(it => (it.total === null || it.total === undefined) && (it.aliases || []).length === 1 && it.aliases[0] === txt);
+        if (!already) {
+          cardLimits.push({
+            id: "ph_" + txt,
+            bank: "",
+            brand: "",
+            category: "",
+            total: null,
+            aliases: [txt],
+            hidden: false,
+            placeholder: true
+          });
+        }
+      }
+    });
+  }
 
-    const openMap = sumOpenByCard();
+  function renderCardLimitsTable() {
+    fillLaunchCardSelect();
+
+    // cria placeholders para permitir ocultar "Débito/Depósito" etc
+    ensurePlaceholderItemsForLaunchCards();
+    // salva depois de garantir placeholders
+    saveCardLimits();
+
+    const openMap = sumOpenByLaunchCardText();
     const tbody = $("#limitsTbody");
     tbody.empty();
 
-    // Também mostrar cartões que existem nos lançamentos mas não foram cadastrados em limites
-    const fromLaunch = new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean));
-    const fromLimits = new Set(cardLimits.map(c => (c.key || "").trim()).filter(Boolean));
-    const allKeys = Array.from(new Set([...fromLaunch, ...fromLimits]))
-      .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
+    const items = [...cardLimits]
+      .filter(it => showHidden ? true : !it.hidden)
+      .sort((a,b) => {
+        const aName = (a.aliases && a.aliases[0]) ? a.aliases[0] : "";
+        const bName = (b.aliases && b.aliases[0]) ? b.aliases[0] : "";
+        return aName.localeCompare(bName, "pt-BR", { sensitivity: "base" });
+      });
 
-    if (allKeys.length === 0) {
-      tbody.append(`<tr><td colspan="5" class="text-center text-muted">Nenhum cartão encontrado nos lançamentos ou cadastrado.</td></tr>`);
+    if (items.length === 0) {
+      tbody.append(`<tr><td colspan="5" class="text-center text-muted">Nenhum item.</td></tr>`);
       return;
     }
 
-    allKeys.forEach(key => {
-      const item = cardLimits.find(x => (x.key || "").trim() === key) || null;
+    items.forEach(item => {
+      const displayName = (item.aliases && item.aliases[0]) ? item.aliases[0] : "(sem nome)";
+      const open = sumOpenForLimitItem(item, openMap);
 
-      const open = openMap[key] || 0;
-      const total = item ? (Number(item.total) || 0) : 0;
-      const free = total - open;
+      const total = (item.total === null || item.total === undefined) ? null : (Number(item.total) || 0);
+      const free = (total === null) ? null : (total - open);
 
-      const freeClass = !item ? "text-muted" : (free < 0 ? "text-danger" : (free < total * 0.15 ? "text-warning" : "text-success"));
+      const hasLimit = total !== null;
 
-      const badge = item ? "" : `<span class="badge badge-warning ml-2">Sem limite cadastrado</span>`;
+      const freeClass =
+        !hasLimit ? "text-muted" :
+        free < 0 ? "text-danger" :
+        free < total * 0.15 ? "text-warning" :
+        "text-success";
+
+      const categoryTag = item.category ? `<span class="tag">${String(item.category).toUpperCase()}</span>` : "";
+      const hiddenTag = item.hidden ? `<span class="badge badge-secondary ml-2">Oculto</span>` : "";
+      const noLimitTag = !hasLimit ? `<span class="badge badge-warning ml-2">Sem limite cadastrado</span>` : "";
+
+      const aliasesHtml = (item.aliases || []).slice(0, 6).map(a => `<span class="tag">${a}</span>`).join("");
 
       tbody.append(`
         <tr>
           <td>
-            <div><strong>${key}</strong>${badge}</div>
-            <small class="text-muted">Banco: ${item?.bank || "-"} | Bandeira: ${item?.brand || "-"}</small>
+            <div><strong>${displayName}</strong>${hiddenTag}${noLimitTag}</div>
+            <div class="mt-1">${categoryTag}${aliasesHtml}</div>
+            <small class="text-muted">
+              Banco: ${item.bank || "-"} | Bandeira: ${item.brand || "-"}
+            </small>
           </td>
-          <td class="text-right">${item ? formatMoneyBR(total) : "-"}</td>
+          <td class="text-right">${hasLimit ? formatMoneyBR(total) : "-"}</td>
           <td class="text-right">${formatMoneyBR(open)}</td>
-          <td class="text-right ${freeClass}">${item ? `<strong>${formatMoneyBR(free)}</strong>` : "-"}</td>
+          <td class="text-right ${freeClass}">${hasLimit ? `<strong>${formatMoneyBR(free)}</strong>` : "-"}</td>
           <td class="text-center">
-            <button class="btn btn-sm btn-outline-primary btnEditLimit" type="button" data-key="${key}">Editar</button>
-            <button class="btn btn-sm btn-outline-danger btnDeleteLimit" type="button" data-key="${key}" ${item ? "" : "disabled"}>Excluir</button>
+            <button class="btn btn-sm btn-outline-primary btnEditLimit" type="button" data-id="${item.id}">Editar</button>
+            <button class="btn btn-sm btn-outline-danger btnDeleteLimit" type="button" data-id="${item.id}" ${item.placeholder ? "disabled" : ""}>Excluir</button>
+            <button class="btn btn-sm btn-outline-secondary btnToggleHidden" type="button" data-id="${item.id}">
+              ${item.hidden ? "Reexibir" : "Ocultar"}
+            </button>
           </td>
         </tr>
       `);
     });
   }
 
+  function setFormFromItem(item) {
+    $("#limitBank").val(item.bank || "");
+    $("#limitBrand").val(item.brand || "");
+    $("#limitCategory").val(item.category || "");
+    $("#limitTotal").val(item.total === null || item.total === undefined ? "" : String(item.total));
+    $("#limitAliases").val((item.aliases || []).join("; "));
+    $("#btnSaveLimit").data("editId", item.id);
+  }
+
   function upsertLimit() {
+    const editId = $("#btnSaveLimit").data("editId") || "";
     const bank = $("#limitBank").val().trim();
     const brand = $("#limitBrand").val().trim();
-    const key = $("#limitKey").val().trim();
-    const total = parseMoneyBR($("#limitTotal").val());
+    const category = $("#limitCategory").val().trim();
+    const totalRaw = $("#limitTotal").val().trim();
+    const total = totalRaw ? parseMoneyBR(totalRaw) : null;
+    const aliases = parseAliases($("#limitAliases").val());
 
-    if (!key) { alert("Informe a chave do cartão (igual ao campo CARTÃO nos lançamentos)."); return; }
-    if (!(total > 0)) { alert("Informe um limite total válido (ex.: 15000)."); return; }
+    if (aliases.length === 0) { alert("Informe pelo menos 1 alias (texto do campo CARTÃO)."); return; }
+    if (total !== null && !(total > 0)) { alert("Limite total inválido (ou deixe em branco)."); return; }
 
-    const existing = cardLimits.find(x => (x.key || "").trim() === key);
-    if (existing) {
-      existing.bank = bank;
-      existing.brand = brand;
-      existing.total = total;
-    } else {
-      cardLimits.push({ id: String(Date.now()), bank, brand, key, total });
-    }
-
-    saveCardLimits();
-    updateAutoCompleteOptions();
-    renderCardLimitsTable();
-    clearLimitForm();
-  }
-
-  function setLimitFormForKey(key) {
-    const item = cardLimits.find(x => (x.key || "").trim() === (key || "").trim()) || null;
-
-    $("#limitSelectCard").val(key || "");
-    $("#limitKey").val(key || "");
-
-    $("#limitBank").val(item?.bank || "");
-    $("#limitBrand").val(item?.brand || "");
-    $("#limitTotal").val(item ? String(item.total || "") : "");
-  }
-
-  function deleteLimitByKey(key) {
-    const item = cardLimits.find(x => (x.key || "").trim() === (key || "").trim());
-    if (!item) return;
-
-    // Excluir apenas do cadastro (não mexe em lançamentos)
-    if (!confirm(`Excluir o limite cadastrado para "${item.key}"? (Não altera lançamentos)`)) return;
-
-    cardLimits = cardLimits.filter(x => (x.key || "").trim() !== item.key.trim());
-    saveCardLimits();
-    updateAutoCompleteOptions();
-    renderCardLimitsTable();
-    clearLimitForm();
-  }
-
-  // Quando seleciona um cartão no dropdown, já preenche a chave (e se existir limite, preenche tudo)
-  $("#limitSelectCard").on("change", function () {
-    const key = ($(this).val() || "").trim();
-    if (!key) {
-      clearLimitForm();
+    // Regra: alias não pode pertencer a 2 cartões cadastrados (com limite)
+    // (para não duplicar soma)
+    const aliasConflicts = [];
+    aliases.forEach(a => {
+      cardLimits.forEach(it => {
+        if (it.id === editId) return;
+        const itAliases = it.aliases || [];
+        const itHasLimit = !(it.total === null || it.total === undefined);
+        if (itHasLimit && itAliases.includes(a)) aliasConflicts.push({ alias:a, other:(itAliases[0]||it.id) });
+      });
+    });
+    if (aliasConflicts.length > 0) {
+      alert("Esse alias já está sendo usado por outro cartão com limite: " + aliasConflicts[0].alias);
       return;
     }
-    setLimitFormForKey(key);
-  });
 
+    if (editId) {
+      const idx = cardLimits.findIndex(x => x.id === editId);
+      if (idx >= 0) {
+        cardLimits[idx] = {
+          ...cardLimits[idx],
+          bank, brand, category,
+          total,
+          aliases,
+          placeholder: false,
+          hidden: false
+        };
+      }
+    } else {
+      cardLimits.push({
+        id: String(Date.now()),
+        bank, brand, category,
+        total,
+        aliases,
+        hidden: false,
+        placeholder: false
+      });
+    }
+
+    // remove placeholders duplicados que tenham o mesmo alias[0] sozinho
+    const usedAliasSingles = new Set(cardLimits.filter(x => !x.placeholder).flatMap(x => x.aliases || []));
+    cardLimits = cardLimits.filter(x => {
+      if (!x.placeholder) return true;
+      const a0 = (x.aliases || [])[0];
+      if (!a0) return false;
+      return !usedAliasSingles.has(a0);
+    });
+
+    saveCardLimits();
+    updateAutoCompleteOptions();
+    renderCardLimitsTable();
+    clearLimitForm();
+  }
+
+  function deleteLimit(id) {
+    const item = cardLimits.find(x => x.id === id);
+    if (!item) return;
+    if (!confirm(`Excluir este cadastro de limite? (Não altera lançamentos)`)) return;
+    // excluir só itens não-placeholder
+    cardLimits = cardLimits.filter(x => x.id !== id);
+    saveCardLimits();
+    updateAutoCompleteOptions();
+    renderCardLimitsTable();
+    clearLimitForm();
+  }
+
+  function toggleHidden(id) {
+    const idx = cardLimits.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    cardLimits[idx].hidden = !cardLimits[idx].hidden;
+    saveCardLimits();
+    renderCardLimitsTable();
+  }
+
+  // eventos do modal
   $("#btnCardLimits").on("click", function () {
     renderCardLimitsTable();
     $("#cardLimitsModal").modal("show");
   });
 
-  $("#btnAddLimit").on("click", function () {
-    upsertLimit();
+  $("#btnShowHidden").on("click", function () {
+    showHidden = !showHidden;
+    $(this).text(showHidden ? "Ocultar ocultos" : "Mostrar ocultos");
+    renderCardLimitsTable();
   });
 
-  $("#btnClearLimitForm").on("click", function () {
-    clearLimitForm();
+  $("#btnClearLimit").on("click", clearLimitForm);
+  $("#btnSaveLimit").on("click", upsertLimit);
+
+  $("#limitLaunchCard").on("change", function () {
+    const txt = ($(this).val() || "").trim();
+    if (!txt) return;
+    // facilita: joga o escolhido no aliases
+    const current = parseAliases($("#limitAliases").val());
+    if (!current.includes(txt)) current.unshift(txt);
+    $("#limitAliases").val(current.join("; "));
   });
 
-  // Delegação: garante funcionar mesmo re-renderizando a tabela
   $("#limitsTbody").on("click", ".btnEditLimit", function () {
-    const key = ($(this).data("key") || "").trim();
-    setLimitFormForKey(key);
+    const id = $(this).data("id");
+    const item = cardLimits.find(x => x.id === id);
+    if (!item) return;
+    setFormFromItem(item);
   });
 
   $("#limitsTbody").on("click", ".btnDeleteLimit", function () {
-    const key = ($(this).data("key") || "").trim();
-    deleteLimitByKey(key);
+    const id = $(this).data("id");
+    deleteLimit(id);
   });
 
-  // ------- Lançamentos
+  $("#limitsTbody").on("click", ".btnToggleHidden", function () {
+    const id = $(this).data("id");
+    toggleHidden(id);
+  });
+
+  // ---- Lançamentos (restante igual ao seu)
   $("#btnAddRow").on("click", function () {
     $("#addRowForm").slideToggle(300);
     updateAutoCompleteOptions();
@@ -1087,8 +1229,6 @@
     $("#chkAutoSave").prop("checked", true);
     document.getElementById("btnLoadSheets").disabled = true;
     document.getElementById("btnSaveSheets").disabled = true;
-
-    // Se algo quebrar, você vai ver no console (F12)
   });
 </script>
 </body>
