@@ -14,6 +14,7 @@
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/plug-ins/1.13.6/sorting/date-eu.js"></script>
 
+  <!-- CSV ainda pode ficar carregado (não atrapalha), mas não é mais usado na UI -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <!-- Google APIs (com onload) -->
@@ -58,7 +59,9 @@
     .summary-icon { font-size: 2.5rem; margin-bottom: 12px; }
     .summary-value { font-size: 2rem; font-weight: 700; }
 
+    /* Mantém inputs do filtro com bom tamanho */
     tfoot input { width: 100%; padding: 6px; font-size: 0.9em; border: 1px solid #ccc; border-radius: 4px; }
+
     .edit-cell { cursor: pointer; padding: 6px !important; font-size: 13px; }
     .edit-cell:hover { background: #f0f8ff !important; }
     #addRowForm { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 16px; display: none; }
@@ -76,6 +79,19 @@
     .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
     .toolbar .btn { margin: 0 !important; }
     .status-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; }
+
+    /* Filtros agora no cabeçalho (segunda linha) */
+    #dataTable thead th { vertical-align: top; }
+    #dataTable thead tr.filters th { padding-top: 4px !important; padding-bottom: 4px !important; }
+    #dataTable thead tr.filters th input {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 12px;
+      padding: 4px 6px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+    }
+    #dataTable thead tr.filters th input:focus { outline: none; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.15); }
 
     /* Impressão: imprimir só o modal de relatório */
     @media print {
@@ -96,7 +112,7 @@
       .modal-dialog { max-width: 100% !important; }
 
       /* REMOVER filtros na impressão */
-      .no-print { display: none !important; } /* padrão clássico p/ print [web:156][web:158] */
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -137,7 +153,8 @@
         </div>
         <div>
           <label class="mb-0" style="user-select:none;">
-            <input type="checkbox" id="chkAutoSave" />
+            <!-- ALTERAÇÃO: deixar sempre marcado -->
+            <input type="checkbox" id="chkAutoSave" checked />
             Salvar automático no Sheets
           </label>
         </div>
@@ -148,8 +165,7 @@
       <h3>Lançamentos (Mais recente primeiro)</h3>
 
       <div class="toolbar">
-        <button id="btnImportCSV" class="btn btn-info">Importar CSV</button>
-        <button id="btnExportCSV" class="btn btn-outline-primary">Exportar CSV</button>
+        <!-- ALTERAÇÃO: removidos botões de importar/exportar CSV (Sheets é o “banco”) -->
 
         <button id="btnAddRow" class="btn btn-primary">+ Nova Parcela</button>
         <button id="btnExcluirRegistro" class="btn btn-danger">Excluir Registros</button>
@@ -160,6 +176,7 @@
         <button id="btnLoadSheets" class="btn btn-warning" disabled>Carregar do Sheets</button>
         <button id="btnSaveSheets" class="btn btn-warning" disabled>Salvar no Sheets</button>
 
+        <!-- Mantido (invisível) só se você quiser reutilizar no futuro; pode apagar também -->
         <input type="file" id="fileInput" accept=".csv" style="display:none;" />
       </div>
 
@@ -222,6 +239,7 @@
 
       <table id="dataTable" class="display compact" style="width:100%;">
         <thead>
+          <!-- Linha 1: nomes -->
           <tr>
             <th><input type="checkbox" id="selectAll" /></th>
             <th>DATA COMPRA</th>
@@ -236,13 +254,31 @@
             <th>DATA PAGTO</th>
             <th>STATUS</th>
           </tr>
+
+          <!-- ALTERAÇÃO: Linha 2: filtros abaixo de cada nome -->
+          <tr class="filters no-print">
+            <th></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+            <th><input type="text" placeholder="Filtrar..."></th>
+          </tr>
         </thead>
+
         <tbody></tbody>
+
+        <!-- Mantive o tfoot por compatibilidade, mas vazio (não usamos mais filtros no rodapé) -->
         <tfoot>
           <tr>
-            <th></th>
-            <th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th>
-            <th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th><th>Filtro</th>
+            <th></th><th></th><th></th><th></th><th></th><th></th>
+            <th></th><th></th><th></th><th></th><th></th><th></th>
           </tr>
         </tfoot>
       </table>
@@ -261,7 +297,6 @@
         </div>
 
         <div class="modal-body">
-
           <!-- Filtros: aparecem na tela, mas NÃO aparecem na impressão -->
           <div class="row no-print">
             <div class="col-md-4 mb-3">
@@ -440,15 +475,23 @@
       lengthMenu: [20, 40, 60, 80, 100, 200, -1],
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
       scrollX: true,
+
+      /* ALTERAÇÃO: filtros agora no THEAD (linha .filters) */
       initComplete: function () {
-        this.api().columns().every(function (i) {
-          if (i === 0) return;
+        const api = this.api();
+
+        api.columns().every(function (i) {
+          if (i === 0) return; // sem filtro no checkbox
+
           const column = this;
-          $('<input type="text" class="form-control form-control-sm" placeholder="Filtrar...">')
-            .appendTo($(column.footer()).empty())
-            .on("keyup change", function () {
-              if (column.search() !== this.value) column.search(this.value).draw();
-            });
+          const input = $('#dataTable thead tr.filters th').eq(i).find('input');
+
+          // evita clicar no input e disparar sort no header
+          input.off('click').on('click', function (e) { e.stopPropagation(); });
+
+          input.off("keyup change").on("keyup change", function () {
+            if (column.search() !== this.value) column.search(this.value).draw();
+          });
         });
       }
     });
@@ -489,61 +532,17 @@
     });
   }
 
+  /* ALTERAÇÃO: Removidos handlers de Import/Export CSV (não existe mais botão)
+     Mantive o código de parsing/export comentado como referência.
+     Se quiser, posso remover totalmente.
+  */
+
+  /*
   $("#btnImportCSV").on("click", () => $("#fileInput").click());
-  $("#fileInput").on("change", function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
+  $("#fileInput").on("change", function (e) { ... });
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      delimiter: ",",
-      transformHeader: h => h.trim().toUpperCase().replace(/\s+/g, " "),
-      complete: async function (results) {
-        if (results.errors && results.errors.length > 0) {
-          alert("Erro ao ler o CSV: " + results.errors.map(e => e.message).join(", "));
-          return;
-        }
-
-        tableData = (results.data || []).map(row => normalizeRow({
-          "DATA COMPRA": row["DATA COMPRA"] || "",
-          "VALORES A RECEBER": row["VALORES A RECEBER"] || "",
-          "DESCRIÇÃO": row["DESCRIÇÃO"] || "",
-          "LOJA": row["LOJA"] || "",
-          "VALOR TOTAL": row["VALOR TOTAL"] || "0",
-          "CARTÃO": row["CARTÃO UTILIZADO"] || row["CARTAO"] || row["CARTÃO"] || "",
-          "TOTAL PARCELAS": row["TOTAL PARCELAS"] || row["TOTAL PARC."] || 1,
-          "PARCELA": row["PARCELA ATUAL"] || row["PARCELA"] || 1,
-          "VALOR PARCELA": row["VALOR PARCELA"] || "0",
-          "DATA PAGTO": row["DATA PAGAMENTO"] || row["DATA PAGTO"] || "",
-          "STATUS": row["STATUS"] || "Em aberto"
-        })).filter(r => r["DATA COMPRA"] || r["DESCRIÇÃO"] || parseMoneyBR(r["VALOR PARCELA"]) > 0);
-
-        initTable();
-        updateDashboard();
-        updateAutoCompleteOptions();
-
-        if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
-        else alert("Importado. Clique em “Salvar no Sheets” para gravar.");
-      }
-    });
-
-    this.value = "";
-  });
-
-  $("#btnExportCSV").on("click", function () {
-    if (tableData.length === 0) { alert("Não há dados para exportar."); return; }
-    const csv = Papa.unparse(tableData);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `controlefinanceiro-dayerre-${new Date().toISOString().slice(0,10)}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  });
+  $("#btnExportCSV").on("click", function () { ... });
+  */
 
   $("#btnAddRow").on("click", function () {
     $("#addRowForm").slideToggle(300);
@@ -740,7 +739,7 @@
   $("#btnPrintReport").on("click", function () {
     if (!monthlyReportTable) { window.print(); return; }
     const oldLen = monthlyReportTable.page.len();
-    monthlyReportTable.page.len(-1).draw(); // -1 = todas [web:161]
+    monthlyReportTable.page.len(-1).draw();
 
     setTimeout(() => {
       try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
@@ -911,7 +910,9 @@
     updateDashboard();
     updateAutoCompleteOptions();
 
-    $("#chkAutoSave").prop("checked", false);
+    /* ALTERAÇÃO: deixar sempre marcado */
+    $("#chkAutoSave").prop("checked", true);
+
     document.getElementById("btnLoadSheets").disabled = true;
     document.getElementById("btnSaveSheets").disabled = true;
   });
