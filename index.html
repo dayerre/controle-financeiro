@@ -973,6 +973,25 @@
     alert("Totais atualizados com sucesso!");
   });
 
+function updateReportTotalsFromMonthlyTable() {
+  if (!monthlyReportTable) return;
+
+  let total = 0, pago = 0, apagar = 0;
+  const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray(); // considera "Pesquisar" [web:43]
+
+  rows.forEach(r => {
+    const v = parseMoneyBR(r["VALOR PARCELA"]);
+    total += v;
+    if ((r["STATUS"] || "").trim() === "Pago") pago += v;
+    else apagar += v;
+  });
+
+  $("#reportTotalGeral").text(formatMoneyBR(total));
+  $("#reportTotalPago").text(formatMoneyBR(pago));
+  $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+}
+
+
   function updateReport() {
     const monthValue = $("#monthInput").val();
     const recipient = $("#recipientSelect").val();
@@ -981,6 +1000,10 @@
     const filtered = tableData.filter(row => {
       const datePagto = parseDateBR(row["DATA PAGTO"]);
       if (!datePagto) return false;
+monthlyReportTable.off("draw.updateTotals").on("draw.updateTotals", function () {
+  updateReportTotalsFromMonthlyTable();
+});
+updateReportTotalsFromMonthlyTable();
 
       if (monthValue) {
         const [y, m] = monthValue.split("-").map(Number);
