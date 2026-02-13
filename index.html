@@ -76,6 +76,10 @@
     .toolbar .btn { margin: 0 !important; }
     .status-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; }
 
+    /* Modal limites */
+    .limit-row-card { background:#f8f9fa; border-radius: 12px; padding: 12px; }
+    .limit-table td, .limit-table th { font-size: 13px; padding: 8px !important; }
+
     @media print {
       body * { visibility: hidden !important; }
       #monthlyReportModal, #monthlyReportModal * { visibility: visible !important; }
@@ -145,12 +149,16 @@
       <h3>Lançamentos (Mais recente primeiro)</h3>
 
       <div class="toolbar">
-        <!-- CSV removido -->
         <button id="btnAddRow" class="btn btn-primary">+ Nova Parcela</button>
         <button id="btnExcluirRegistro" class="btn btn-danger">Excluir Registros</button>
         <button id="btnMarcarPago" class="btn btn-success">Marcar como Pago</button>
         <button id="btnUpdateTotals" class="btn btn-secondary">Atualizar Totais</button>
         <button id="btnMonthlyReport" class="btn btn-info">Relatórios Mensais</button>
+
+        <!-- NOVO -->
+        <button id="btnCardLimits" class="btn btn-outline-dark">
+          <i class="bi bi-credit-card"></i> Limites de Cartão
+        </button>
 
         <button id="btnLoadSheets" class="btn btn-warning" disabled>Carregar do Sheets</button>
         <button id="btnSaveSheets" class="btn btn-warning" disabled>Salvar no Sheets</button>
@@ -185,7 +193,8 @@
                   <input type="text" class="form-control" id="newValorTotal" placeholder="R$ Valor Total" required />
                 </div>
                 <div class="col-md-3 mb-2">
-                  <input type="text" class="form-control" id="newCartao" list="cartaoOptions" placeholder="Cartão" required />
+                  <!-- dica de padronização: "Banco | Bandeira" -->
+                  <input type="text" class="form-control" id="newCartao" list="cartaoOptions" placeholder="Cartão (ex.: Sicredi | Visa)" required />
                   <datalist id="cartaoOptions"></datalist>
                 </div>
                 <div class="col-md-2 mb-2">
@@ -233,8 +242,73 @@
           </tr>
         </thead>
         <tbody></tbody>
-        <!-- ALTERAÇÃO: removido tfoot (sem filtros embaixo) -->
       </table>
+    </div>
+  </div>
+
+  <!-- Modal Limites de Cartão -->
+  <div class="modal fade" id="cardLimitsModal" tabindex="-1" role="dialog" aria-labelledby="cardLimitsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cardLimitsLabel">Limites de Cartão</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="limit-row-card mb-3">
+            <div class="form-row">
+              <div class="col-md-4 mb-2">
+                <label>Banco</label>
+                <input type="text" class="form-control" id="limitBank" placeholder="Ex.: Sicredi" />
+              </div>
+              <div class="col-md-4 mb-2">
+                <label>Bandeira</label>
+                <input type="text" class="form-control" id="limitBrand" placeholder="Ex.: Visa" />
+              </div>
+              <div class="col-md-4 mb-2">
+                <label>Limite total</label>
+                <input type="text" class="form-control" id="limitTotal" placeholder="Ex.: 15000" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="col-md-3 mb-2">
+                <button class="btn btn-dark btn-block" id="btnAddLimit">Adicionar / Atualizar</button>
+              </div>
+              <div class="col-md-3 mb-2">
+                <button class="btn btn-outline-secondary btn-block" id="btnClearLimitForm">Limpar</button>
+              </div>
+              <div class="col-md-6 mb-2 d-flex align-items-end">
+                <small class="text-muted">
+                  Dica: o campo CARTÃO nos lançamentos deve bater com “Banco | Bandeira” (ex.: <strong>Sicredi | Visa</strong>).
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-striped limit-table">
+              <thead>
+                <tr>
+                  <th>Cartão</th>
+                  <th class="text-right">Limite total</th>
+                  <th class="text-right">Em aberto</th>
+                  <th class="text-right">Limite livre</th>
+                  <th class="text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="limitsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -316,6 +390,11 @@
   const HEADERS = ["DATA COMPRA","VALORES A RECEBER","DESCRIÇÃO","LOJA","VALOR TOTAL","CARTÃO","TOTAL PARCELAS","PARCELA","VALOR PARCELA","DATA PAGTO","STATUS"];
   const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
   const WRITE_START_A1 = `${SHEET_NAME}!A1`;
+
+  // ---- Limites de cartão (localStorage)
+  const LS_LIMITS_KEY = "cf_dayerre_card_limits_v1";
+  // cardLimits: [{ id, bank, brand, key, total }]
+  let cardLimits = [];
 
   let tokenClient = null;
   let gapiInited = false;
@@ -401,6 +480,9 @@
     $("#totalGeral").text(formatMoneyBR(totalG));
     $("#totalPago").text(formatMoneyBR(pago));
     $("#totalAPagar").text(formatMoneyBR(apagar));
+
+    // Se o modal estiver aberto, atualiza a tabela de limites ao vivo
+    if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
   }
 
   function initTable() {
@@ -427,7 +509,6 @@
       lengthMenu: [20, 40, 60, 80, 100, 200, -1],
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
       scrollX: true
-      /* ALTERAÇÃO: removido initComplete (sem filtros por coluna) */
     });
 
     $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
@@ -466,9 +547,178 @@
     });
   }
 
+  // ---------- Limites de Cartão (regras)
+  function cardKeyFromBankBrand(bank, brand) {
+    const b = (bank || "").trim();
+    const br = (brand || "").trim();
+    if (!b && !br) return "";
+    if (b && br) return `${b} | ${br}`;
+    return b || br;
+  }
+
+  function loadCardLimits() {
+    try {
+      const raw = localStorage.getItem(LS_LIMITS_KEY);
+      cardLimits = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(cardLimits)) cardLimits = [];
+    } catch (e) {
+      cardLimits = [];
+    }
+  }
+
+  function saveCardLimits() {
+    localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits || []));
+  }
+
+  function sumOpenByCard() {
+    // Soma apenas "Em aberto" (qualquer coisa diferente de Pago entra como em aberto)
+    // Agrupa pela string do campo CARTÃO.
+    return tableData.reduce((acc, r) => {
+      const card = (r["CARTÃO"] || "").trim();
+      if (!card) return acc;
+      if ((r["STATUS"] || "").trim() === "Pago") return acc;
+
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      acc[card] = (acc[card] || 0) + v;
+      return acc;
+    }, {});
+  }
+
+  function clearLimitForm() {
+    $("#limitBank").val("");
+    $("#limitBrand").val("");
+    $("#limitTotal").val("");
+    $("#btnAddLimit").data("editId", "");
+  }
+
+  function renderCardLimitsTable() {
+    const openMap = sumOpenByCard();
+    const tbody = $("#limitsTbody");
+    tbody.empty();
+
+    const sorted = [...cardLimits].sort((a, b) => (a.key || "").localeCompare(b.key || "", "pt-BR", { sensitivity: "base" }));
+
+    if (sorted.length === 0) {
+      tbody.append(`<tr><td colspan="5" class="text-center text-muted">Nenhum cartão cadastrado.</td></tr>`);
+      return;
+    }
+
+    sorted.forEach(item => {
+      const open = openMap[item.key] || 0;
+      const total = Number(item.total) || 0;
+      const free = total - open;
+
+      const freeClass = free < 0 ? "text-danger" : (free < total * 0.15 ? "text-warning" : "text-success");
+
+      tbody.append(`
+        <tr>
+          <td>
+            <div><strong>${item.key}</strong></div>
+            <small class="text-muted">Banco: ${item.bank || "-"} | Bandeira: ${item.brand || "-"}</small>
+          </td>
+          <td class="text-right">${formatMoneyBR(total)}</td>
+          <td class="text-right">${formatMoneyBR(open)}</td>
+          <td class="text-right ${freeClass}"><strong>${formatMoneyBR(free)}</strong></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary btnEditLimit" data-id="${item.id}">Editar</button>
+            <button class="btn btn-sm btn-outline-danger btnDeleteLimit" data-id="${item.id}">Excluir</button>
+          </td>
+        </tr>
+      `);
+    });
+  }
+
+  function upsertLimit() {
+    const bank = $("#limitBank").val().trim();
+    const brand = $("#limitBrand").val().trim();
+    const total = parseMoneyBR($("#limitTotal").val());
+
+    const key = cardKeyFromBankBrand(bank, brand);
+    if (!key) { alert("Informe pelo menos o Banco ou a Bandeira."); return; }
+    if (!(total > 0)) { alert("Informe um limite total válido (ex.: 15000)."); return; }
+
+    const editId = $("#btnAddLimit").data("editId");
+    if (editId) {
+      const idx = cardLimits.findIndex(x => x.id === editId);
+      if (idx >= 0) {
+        // evita duplicar chave com outro cartão
+        const conflict = cardLimits.some(x => x.id !== editId && x.key === key);
+        if (conflict) { alert("Já existe um cartão cadastrado com esse Banco | Bandeira."); return; }
+
+        cardLimits[idx] = { ...cardLimits[idx], bank, brand, key, total };
+      }
+    } else {
+      if (cardLimits.some(x => x.key === key)) {
+        alert("Já existe um cartão cadastrado com esse Banco | Bandeira.");
+        return;
+      }
+      cardLimits.push({ id: String(Date.now()), bank, brand, key, total });
+    }
+
+    saveCardLimits();
+    renderCardLimitsTable();
+    clearLimitForm();
+    updateAutoCompleteOptions(); // atualiza datalist com as chaves cadastradas também
+  }
+
+  function setLimitFormForEdit(id) {
+    const item = cardLimits.find(x => x.id === id);
+    if (!item) return;
+    $("#limitBank").val(item.bank || "");
+    $("#limitBrand").val(item.brand || "");
+    $("#limitTotal").val(String(item.total || ""));
+    $("#btnAddLimit").data("editId", item.id);
+  }
+
+  function deleteLimit(id) {
+    const item = cardLimits.find(x => x.id === id);
+    if (!item) return;
+    if (!confirm(`Excluir o cartão "${item.key}"?`)) return;
+    cardLimits = cardLimits.filter(x => x.id !== id);
+    saveCardLimits();
+    renderCardLimitsTable();
+    clearLimitForm();
+  }
+
+  // Opcional: colocar as chaves dos limites dentro do datalist de cartão
+  function addLimitsToCardDatalist() {
+    const existing = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+    const limits = new Set(cardLimits.map(c => c.key).filter(Boolean));
+    const merged = new Set([...existing, ...limits]);
+    $("#cartaoOptions").html(Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join(""));
+  }
+
+  // ---------- UI events (Limites)
+  $("#btnCardLimits").on("click", function () {
+    renderCardLimitsTable();
+    $("#cardLimitsModal").modal("show");
+  });
+
+  $("#btnAddLimit").on("click", function (e) {
+    e.preventDefault();
+    upsertLimit();
+  });
+
+  $("#btnClearLimitForm").on("click", function (e) {
+    e.preventDefault();
+    clearLimitForm();
+  });
+
+  $("#limitsTbody").on("click", ".btnEditLimit", function () {
+    const id = $(this).data("id");
+    setLimitFormForEdit(id);
+  });
+
+  $("#limitsTbody").on("click", ".btnDeleteLimit", function () {
+    const id = $(this).data("id");
+    deleteLimit(id);
+  });
+
+  // ---------- Lançamentos
   $("#btnAddRow").on("click", function () {
     $("#addRowForm").slideToggle(300);
     updateAutoCompleteOptions();
+    addLimitsToCardDatalist();
     const hoje = formatDateBR(new Date());
     $("#newDataCompra").val(hoje);
     $("#newDataPagamento").val(hoje);
@@ -527,6 +777,7 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
+    addLimitsToCardDatalist();
 
     this.reset();
     $("#addRowForm").slideUp(300);
@@ -552,6 +803,7 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
+    addLimitsToCardDatalist();
 
     if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
   });
@@ -571,6 +823,7 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
+    addLimitsToCardDatalist();
 
     if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
   });
@@ -579,6 +832,7 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
+    addLimitsToCardDatalist();
     alert("Totais atualizados com sucesso!");
   });
 
@@ -768,6 +1022,7 @@
       initTable();
       updateDashboard();
       updateAutoCompleteOptions();
+      addLimitsToCardDatalist();
 
       setSheetsStatus("Sheets: carregado", "ok");
     } catch (err) {
@@ -826,10 +1081,15 @@
 
   $(document).ready(function () {
     setSheetsStatus("Sheets: aguardando bibliotecas…", "warn");
+
+    loadCardLimits();          // NOVO
+    clearLimitForm();          // NOVO
+
     tableData = [];
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
+    addLimitsToCardDatalist();
 
     $("#chkAutoSave").prop("checked", true);
     document.getElementById("btnLoadSheets").disabled = true;
