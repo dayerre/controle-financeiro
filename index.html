@@ -984,13 +984,12 @@
     alert("Totais atualizados com sucesso!");
   });
 
-  // ========= ALTERAÇÃO: totais do relatório seguem o "Pesquisar" =========
+  // ========= Relatório mensal (robusto) =========
   function updateReportTotalsFromMonthlyTable() {
     if (!monthlyReportTable) return;
 
     let total = 0, pago = 0, apagar = 0;
-
-    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray(); // [web:43]
+    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray(); // [web:62]
     rows.forEach(r => {
       const v = parseMoneyBR(r["VALOR PARCELA"]);
       total += v;
@@ -1002,32 +1001,12 @@
     $("#reportTotalPago").text(formatMoneyBR(pago));
     $("#reportTotalAPagar").text(formatMoneyBR(apagar));
   }
-  // =====================================================================
 
-  function updateReport() {
-    const monthValue = $("#monthInput").val();
-    const recipient = $("#recipientSelect").val();
-    const card = $("#cardSelect").val();
-
-    const filtered = tableData.filter(row => {
-      const datePagto = parseDateBR(row["DATA PAGTO"]);
-      if (!datePagto) return false;
-
-      if (monthValue) {
-        const [y, m] = monthValue.split("-").map(Number);
-        if (datePagto.getFullYear() !== y) return false;
-        if ((datePagto.getMonth() + 1) !== m) return false;
-      }
-      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
-      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
-
-      return true;
-    });
-
-    if (monthlyReportTable) monthlyReportTable.destroy();
+  function ensureMonthlyReportTable() {
+    if (monthlyReportTable) return;
 
     monthlyReportTable = $("#monthlyReportTable").DataTable({
-      data: filtered,
+      data: [],
       columns: [
         { data: "DATA COMPRA" },
         { data: "VALORES A RECEBER" },
@@ -1047,12 +1026,37 @@
       order: [[8, "asc"]]
     });
 
-    // Atualiza totais sempre que a tabela redesenhar (Pesquisar, ordenar, paginar)
     monthlyReportTable.off("draw.updateTotals").on("draw.updateTotals", function () {
       updateReportTotalsFromMonthlyTable();
     });
+  }
 
-    // Atualiza imediatamente na abertura / troca de filtros
+  function updateReport() {
+    ensureMonthlyReportTable();
+
+    const monthValue = $("#monthInput").val();
+    const recipient = $("#recipientSelect").val();
+    const card = $("#cardSelect").val();
+
+    const filtered = tableData.filter(row => {
+      const datePagto = parseDateBR(row["DATA PAGTO"]);
+      if (!datePagto) return false;
+
+      if (monthValue) {
+        const [y, m] = monthValue.split("-").map(Number);
+        if (datePagto.getFullYear() !== y) return false;
+        if ((datePagto.getMonth() + 1) !== m) return false;
+      }
+      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
+      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
+
+      return true;
+    });
+
+    monthlyReportTable.clear();
+    monthlyReportTable.rows.add(filtered);
+    monthlyReportTable.draw();
+
     updateReportTotalsFromMonthlyTable();
   }
 
@@ -1068,12 +1072,23 @@
     selCard.empty().append(`<option value="Todos">Todos</option>`);
     Array.from(cardSet).sort().forEach(v => selCard.append(`<option value="${v}">${v}</option>`));
 
-    if (monthlyReportTable) monthlyReportTable.destroy();
+    ensureMonthlyReportTable();
     updateReport();
     $("#monthlyReportModal").modal("show");
+
+    // Ajusta colunas quando o modal estiver visível (evita "tela branca") [web:66]
+    setTimeout(() => {
+      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+    }, 150);
   });
 
   $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
+
+  $("#monthlyReportModal").on("shown.bs.modal", function () {
+    if (monthlyReportTable) {
+      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+    }
+  });
 
   $("#btnPrintReport").on("click", function () {
     if (!monthlyReportTable) { window.print(); return; }
