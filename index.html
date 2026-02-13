@@ -418,8 +418,6 @@
   const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
   const WRITE_START_A1 = `${SHEET_NAME}!A1`;
 
-  // NOVO modelo:
-  // cardLimits = [{ id, bank, brand, category, total, aliases:[], hidden:false }]
   const LS_LIMITS_KEY = "cf_dayerre_card_limits_v3";
   let cardLimits = [];
   let showHidden = false;
@@ -495,7 +493,6 @@
     $("#receberOptions").html(Array.from(receberSet).sort().map(v => `<option value="${v}"></option>`).join(""));
     $("#lojaOptions").html(Array.from(lojaSet).sort().map(v => `<option value="${v}"></option>`).join(""));
 
-    // Sugestões: cartões dos lançamentos + aliases cadastrados
     const aliasSet = new Set((cardLimits || []).flatMap(c => (c.aliases || [])).filter(Boolean));
     const merged = new Set([...cartaoSet, ...aliasSet]);
     $("#cartaoOptions").html(Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join(""));
@@ -984,12 +981,12 @@
     alert("Totais atualizados com sucesso!");
   });
 
-  // ========= Relatório mensal (robusto) =========
+  // ========= RELATÓRIO (corrigido: recria a tabela toda vez) =========
   function updateReportTotalsFromMonthlyTable() {
     if (!monthlyReportTable) return;
 
     let total = 0, pago = 0, apagar = 0;
-    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray(); // [web:62]
+    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
     rows.forEach(r => {
       const v = parseMoneyBR(r["VALOR PARCELA"]);
       total += v;
@@ -1002,8 +999,28 @@
     $("#reportTotalAPagar").text(formatMoneyBR(apagar));
   }
 
-  function ensureMonthlyReportTable() {
-    if (monthlyReportTable) return;
+  function buildMonthlyReportTable() {
+    if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      $("#monthlyReportTable").DataTable().destroy(true); /* remove wrapper/eventos */ /* [web:73] */
+    }
+
+    $("#monthlyReportTable").empty().append(`
+      <thead>
+        <tr>
+          <th>DATA COMPRA</th>
+          <th>VALORES A RECEBER</th>
+          <th>DESCRIÇÃO</th>
+          <th>LOJA</th>
+          <th>VALOR TOTAL</th>
+          <th>CARTÃO</th>
+          <th>PARCELA TOTAL</th>
+          <th>VALOR PARCELA</th>
+          <th>DATA PAGTO</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `);
 
     monthlyReportTable = $("#monthlyReportTable").DataTable({
       data: [],
@@ -1023,7 +1040,9 @@
       lengthMenu: [10, 25, 50, 100, -1],
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
       dom: "frtip",
-      order: [[8, "asc"]]
+      order: [[8, "asc"]],
+      autoWidth: false,
+      deferRender: true
     });
 
     monthlyReportTable.off("draw.updateTotals").on("draw.updateTotals", function () {
@@ -1032,7 +1051,9 @@
   }
 
   function updateReport() {
-    ensureMonthlyReportTable();
+    if (!monthlyReportTable || !$.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      buildMonthlyReportTable();
+    }
 
     const monthValue = $("#monthInput").val();
     const recipient = $("#recipientSelect").val();
@@ -1058,6 +1079,10 @@
     monthlyReportTable.draw();
 
     updateReportTotalsFromMonthlyTable();
+
+    setTimeout(() => {
+      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+    }, 50);
   }
 
   $("#btnMonthlyReport").on("click", function () {
@@ -1072,22 +1097,29 @@
     selCard.empty().append(`<option value="Todos">Todos</option>`);
     Array.from(cardSet).sort().forEach(v => selCard.append(`<option value="${v}">${v}</option>`));
 
-    ensureMonthlyReportTable();
-    updateReport();
     $("#monthlyReportModal").modal("show");
-
-    // Ajusta colunas quando o modal estiver visível (evita "tela branca") [web:66]
-    setTimeout(() => {
-      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
-    }, 150);
   });
 
   $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
 
   $("#monthlyReportModal").on("shown.bs.modal", function () {
-    if (monthlyReportTable) {
+    buildMonthlyReportTable();
+    updateReport();
+
+    setTimeout(() => {
       try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+    }, 50);
+  });
+
+  $("#monthlyReportModal").on("hidden.bs.modal", function () {
+    if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      $("#monthlyReportTable").DataTable().destroy(true); /* [web:73] */
     }
+    monthlyReportTable = null;
+
+    $("#reportTotalGeral").text("R$ 0,00");
+    $("#reportTotalPago").text("R$ 0,00");
+    $("#reportTotalAPagar").text("R$ 0,00");
   });
 
   $("#btnPrintReport").on("click", function () {
