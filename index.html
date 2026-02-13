@@ -58,7 +58,6 @@
     .summary-icon { font-size: 2.5rem; margin-bottom: 12px; }
     .summary-value { font-size: 2rem; font-weight: 700; }
 
-    tfoot input { width: 100%; padding: 6px; font-size: 0.9em; border: 1px solid #ccc; border-radius: 4px; }
     .edit-cell { cursor: pointer; padding: 6px !important; font-size: 13px; }
     .edit-cell:hover { background: #f0f8ff !important; }
     #addRowForm { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 16px; display: none; }
@@ -77,21 +76,6 @@
     .toolbar .btn { margin: 0 !important; }
     .status-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; }
 
-    /* Filtros no cabeçalho (segunda linha) */
-    #dataTable thead th { vertical-align: top; }
-    #dataTable thead tr.filters th { padding-top: 4px !important; padding-bottom: 4px !important; }
-    #dataTable thead tr.filters th input {
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 12px;
-      padding: 4px 6px;
-      border: 1px solid #ced4da;
-      border-radius: 6px;
-      background: #fff;
-    }
-    #dataTable thead tr.filters th input:focus { outline: none; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.15); }
-
-    /* Impressão: imprimir só o modal de relatório */
     @media print {
       body * { visibility: hidden !important; }
       #monthlyReportModal, #monthlyReportModal * { visibility: visible !important; }
@@ -109,7 +93,6 @@
       .modal { overflow: visible !important; }
       .modal-dialog { max-width: 100% !important; }
 
-      /* REMOVER filtros na impressão */
       .no-print { display: none !important; }
     }
   </style>
@@ -248,31 +231,9 @@
             <th>DATA PAGTO</th>
             <th>STATUS</th>
           </tr>
-
-          <tr class="filters no-print">
-            <th></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-            <th><input type="text" placeholder="Filtrar..."></th>
-          </tr>
         </thead>
-
         <tbody></tbody>
-
-        <tfoot>
-          <tr>
-            <th></th><th></th><th></th><th></th><th></th><th></th>
-            <th></th><th></th><th></th><th></th><th></th><th></th>
-          </tr>
-        </tfoot>
+        <!-- ALTERAÇÃO: removido tfoot (sem filtros embaixo) -->
       </table>
     </div>
   </div>
@@ -462,40 +423,11 @@
         { data: "STATUS", className: "edit-cell" }
       ],
       order: [[1, "desc"]],
-      orderCellsTop: true,
       pageLength: 20,
       lengthMenu: [20, 40, 60, 80, 100, 200, -1],
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
-      scrollX: true,
-
-      initComplete: function () {
-        const api = this.api();
-
-        api.columns().every(function (i) {
-          if (i === 0) return;
-
-          const column = this;
-          const input = $('#dataTable thead tr.filters th').eq(i).find('input');
-
-          // Não deixa clique/foco/tecla no input disparar sort no TH
-          input
-            .off('click mousedown mouseup keydown')
-            .on('click mousedown mouseup keydown', function (e) {
-              e.stopPropagation();
-            });
-
-          // Só filtra quando começa a digitar; vazio só limpa filtro (sem ordenar)
-          input.off("keyup change").on("keyup change", function () {
-            const val = this.value;
-
-            if (!val) {
-              if (column.search() !== '') column.search('').draw();
-              return;
-            }
-            if (column.search() !== val) column.search(val).draw();
-          });
-        });
-      }
+      scrollX: true
+      /* ALTERAÇÃO: removido initComplete (sem filtros por coluna) */
     });
 
     $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
