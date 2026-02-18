@@ -442,7 +442,30 @@
     if (cleaned.includes(",")) return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
     return parseFloat(cleaned) || 0;
   }
-  function parseDateBR(s) {
+  function sanitizeDateBR(s) {
+    if (!s) return "";
+    const str = String(s).trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+
+    let m = str.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
+    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+
+    m = str.match(/^(\d{2})[\-\.](\d{2})[\-\.](\d{4})$/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+
+    m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (m) {
+      const dd = String(m[1]).padStart(2, '0');
+      const mm = String(m[2]).padStart(2, '0');
+      let yy = String(m[3]);
+      if (yy.length === 2) yy = '20' + yy;
+      return `${dd}/${mm}/${yy}`;
+    }
+
+    return str;
+  }
+
+function parseDateBR(s) {
     if (!s) return null;
     const [d, m, y] = String(s).split("/");
     return (y && m && d) ? new Date(y, m - 1, d) : null;
@@ -1025,7 +1048,7 @@
     monthlyReportTable = $("#monthlyReportTable").DataTable({
       data: [],
       columns: [
-        { data: "DATA COMPRA" },
+        { data: "DATA COMPRA", type: "date-eu" },
         { data: "VALORES A RECEBER" },
         { data: "DESCRIÇÃO" },
         { data: "LOJA" },
@@ -1040,7 +1063,7 @@
       lengthMenu: [10, 25, 50, 100, -1],
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
       dom: "frtip",
-      order: [[8, "asc"]],
+      order: [[0, "desc"]],
       autoWidth: false,
       deferRender: true
     });
@@ -1303,11 +1326,7 @@
     $("#chkAutoSave").prop("checked", true);
     document.getElementById("btnLoadSheets").disabled = true;
     document.getElementById("btnSaveSheets").disabled = true;
-  
-  $("#btnEstornarParcela").off("click").on("click", function () {
-    estornarParcelasSelecionadas();
   });
-});
 </script>
 </body>
 </html>
