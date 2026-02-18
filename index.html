@@ -590,11 +590,8 @@
   }
 
   function getUniqueLaunchCards() {
-    return Array.from(new Set(
-      tableData
-        .map(r => String(r["CARTÃO"] || r["CARTO"] || "").trim())
-        .filter(Boolean)
-    )).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+    return Array.from(new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)))
+      .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
   }
 
   function parseAliases(s) {
@@ -608,15 +605,14 @@
 
   function sumOpenByLaunchCardText() {
     return tableData.reduce((acc, r) => {
-      const card = String(r["CARTÃO"] || r["CARTO"] || "").trim();
+      const card = (r["CARTÃO"] || "").trim();
       if (!card) return acc;
-      const st = String(r["STATUS"] || "").trim();
+      const st = (r["STATUS"] || "").trim();
       if (st === "Pago") return acc;
-      const v = parseMoneyBR(r["VALOR PARCELA"] || 0);
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
       acc[card] = (acc[card] || 0) + v;
       return acc;
     }, {});
-  }, {});
   }
 
   function sumOpenForLimitItem(item, openMap) {
@@ -1307,7 +1303,9 @@
     $("#chkAutoSave").prop("checked", true);
     document.getElementById("btnLoadSheets").disabled = true;
     document.getElementById("btnSaveSheets").disabled = true;
-  });
+  
+    maybeEnableSheetsButtons();
+});
 </script>
 </body>
 </html>
