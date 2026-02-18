@@ -576,7 +576,79 @@
     });
   }
 
-  // ---- Limites v3
+  function estornarParcelasSelecionadas() {
+    const selecionados = $(".row-checkbox:checked");
+    if (selecionados.length === 0) { alert("Selecione pelo menos um registro para estornar."); return; }
+
+    const idxs = [];
+    selecionados.each(function () {
+      const row = this.closest("tr");
+      const idx = dataTable.row(row).index();
+      if (idx !== undefined && idx !== null) idxs.push(idx);
+    });
+
+    // Agrupar por compra (mesma DATA COMPRA + DESCRIÇÃO + CARTÃO + VALOR TOTAL)
+    const groups = new Map();
+    idxs.forEach(i => {
+      const r = tableData[i];
+      if (!r) return;
+      const key = [r["DATA COMPRA"], r["DESCRIÇÃO"], r["CARTÃO"], r["VALOR TOTAL"]].join("||");
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(i);
+    });
+
+    // Bloqueia estorno de linha que esteja Pago
+    for (const arr of groups.values()) {
+      const invalid = arr.filter(i => String(tableData[i]["STATUS"] || "").trim() === "Pago");
+      if (invalid.length > 0) {
+        alert("Há parcelas selecionadas com STATUS = Pago. Para estornar, altere para 'Em aberto' antes ou desmarque essas linhas.");
+        return;
+      }
+    }
+
+    if (!confirm("Confirmar estorno das parcelas selecionadas? As linhas serao excludas e o limite livre do cartao aumenta automaticamente.")) return;
+
+    const rowsToDelete = new Set();
+
+    for (const [key, selectedIdxs] of groups.entries()) {
+      const [dataCompra, descricao, cartao, valorTotal] = key.split("||");
+
+      const allIdxs = tableData
+        .map((r, i) => ({ r, i }))
+        .filter(x => x.r["DATA COMPRA"] === dataCompra && x.r["DESCRIÇÃO"] === descricao && x.r["CARTÃO"] === cartao && x.r["VALOR TOTAL"] === valorTotal)
+        .map(x => x.i);
+
+      const sumSelected = selectedIdxs.reduce((s, i) => s + parseMoneyBR(tableData[i]["VALOR PARCELA"] || 0), 0);
+      const totalOld = parseMoneyBR(valorTotal || 0);
+      const totalNew = Math.max(0, totalOld - sumSelected);
+
+      selectedIdxs.forEach(i => rowsToDelete.add(i));
+
+      const remainingIdxs = allIdxs.filter(i => !rowsToDelete.has(i));
+      const remainingCount = remainingIdxs.length;
+      if (remainingCount === 0) continue;
+
+      remainingIdxs.sort((a, b) => (parseInt(tableData[a]["PARCELA"]) || 0) - (parseInt(tableData[b]["PARCELA"]) || 0));
+      remainingIdxs.forEach((i, k) => {
+        tableData[i]["VALOR TOTAL"] = formatMoneyBR(totalNew);
+        tableData[i]["TOTAL PARCELAS"] = remainingCount;
+        tableData[i]["PARCELA"] = k + 1;
+        tableData[i]["VALOR PARCELA"] = formatMoneyBR(remainingCount ? (totalNew / remainingCount) : 0);
+        tableData[i] = normalizeRow(tableData[i]);
+      });
+    }
+
+    Array.from(rowsToDelete).sort((a, b) => b - a).forEach(i => tableData.splice(i, 1));
+
+    tableData.sort((a, b) => (parseDateBR(b["DATA COMPRA"]) || new Date(0)) - (parseDateBR(a["DATA COMPRA"]) || new Date(0)));
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    if ($("#chkAutoSave").prop("checked")) saveAllToSheets();
+  }
+
+// ---- Limites v3
   function loadCardLimits() {
     try {
       const raw = localStorage.getItem(LS_LIMITS_KEY);
@@ -804,82 +876,6 @@
     updateAutoCompleteOptions();
     renderCardLimitsTable();
     clearLimitForm();
-  }
-
-  function estornarParcelasSelecionadas() {
-    const selecionados = $('.row-checkbox:checked');
-    if (selecionados.length === 0) { alert('Selecione pelo menos um registro para estornar.'); return; }
-
-    const idxs = [];
-    selecionados.each(function() {
-      const row = this.closest('tr');
-      const idx = dataTable.row(row).index();
-      if (idx !== undefined && idx !== null) idxs.push(idx);
-    });
-
-    const groups = new Map();
-    idxs.forEach(i => {
-      const r = tableData[i];
-      if (!r) return;
-      const key = [r['DATA COMPRA'], r['DESCRIÇÃO'], r['CARTÃO'], r['VALOR TOTAL']].join('||');
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(i);
-    });
-
-    for (const arr of groups.values()) {
-      const invalid = arr.filter(i => (tableData[i]['STATUS'] || '').trim() === 'Pago');
-      if (invalid.length > 0) {
-        alert('Há parcelas selecionadas já marcadas como PAGO. Para estornar, deixe o status como Em aberto antes ou desmarque essas linhas.');
-        return;
-      }
-    }
-
-    if (!confirm('Confirmar estorno das parcelas selecionadas? Isso vai excluir as parcelas e devolver o valor ao limite do cartão.')) return;
-
-    const rowsToDelete = new Set();
-
-    for (const [key, selectedIdxs] of groups.entries()) {
-      const [dataCompra, descricao, cartao, valorTotal] = key.split('||');
-
-      const allIdxs = tableData.map((r, i) => ({r, i}))
-        .filter(x => x.r['DATA COMPRA']===dataCompra && x.r['DESCRIÇÃO']===descricao && x.r['CARTÃO']===cartao && x.r['VALOR TOTAL']===valorTotal)
-        .map(x => x.i);
-
-      const sumSelected = selectedIdxs.reduce((s, i) => s + parseMoneyBR(tableData[i]['VALOR PARCELA']||0), 0);
-      const totalOld = parseMoneyBR(valorTotal||0);
-      const totalNew = Math.max(0, totalOld - sumSelected);
-
-      selectedIdxs.forEach(i => rowsToDelete.add(i));
-
-      const remainingIdxs = allIdxs.filter(i => !rowsToDelete.has(i));
-      const remainingCount = remainingIdxs.length;
-
-      if (remainingCount === 0) continue;
-
-      remainingIdxs.sort((a,b) => parseInt(tableData[a]['PARCELA']||0) - parseInt(tableData[b]['PARCELA']||0));
-      remainingIdxs.forEach((i, k) => {
-        tableData[i]['VALOR TOTAL'] = formatMoneyBR(totalNew);
-        tableData[i]['TOTAL PARCELAS'] = remainingCount;
-        tableData[i]['PARCELA'] = k+1;
-        tableData[i]['VALOR PARCELA'] = formatMoneyBR(remainingCount ? (totalNew/remainingCount) : 0);
-        tableData[i] = normalizeRow(tableData[i]);
-      });
-    }
-
-    const delIdxs = Array.from(rowsToDelete).sort((a,b)=>b-a);
-    delIdxs.forEach(i => tableData.splice(i,1));
-
-    // Reordenar por data completa (não só dia)
-    tableData.sort((a, b) => {
-      const db = parseDateBR(b['DATA COMPRA']) || new Date(0);
-      const da = parseDateBR(a['DATA COMPRA']) || new Date(0);
-      return db - da;
-    });
-
-    initTable();
-    updateDashboard();
-    updateAutoCompleteOptions();
-    if ($('#chkAutoSave').prop('checked')) saveAllToSheets();
   }
 
   function deleteLimit(id) {
@@ -1311,12 +1307,6 @@
           "STATUS": row[10] || "Em aberto"
         }));
       }
-
-      tableData.sort((a, b) => {
-        const db = parseDateBR(b["DATA COMPRA"]) || new Date(0);
-        const da = parseDateBR(a["DATA COMPRA"]) || new Date(0);
-        return db - da;
-      });
 
       initTable();
       updateDashboard();
