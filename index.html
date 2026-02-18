@@ -442,30 +442,7 @@
     if (cleaned.includes(",")) return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
     return parseFloat(cleaned) || 0;
   }
-  function sanitizeDateBR(s) {
-    if (!s) return "";
-    const str = String(s).trim();
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
-
-    let m = str.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/);
-    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
-
-    m = str.match(/^(\d{2})[\-\.](\d{2})[\-\.](\d{4})$/);
-    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
-
-    m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-    if (m) {
-      const dd = String(m[1]).padStart(2, '0');
-      const mm = String(m[2]).padStart(2, '0');
-      let yy = String(m[3]);
-      if (yy.length === 2) yy = '20' + yy;
-      return `${dd}/${mm}/${yy}`;
-    }
-
-    return str;
-  }
-
-function parseDateBR(s) {
+  function parseDateBR(s) {
     if (!s) return null;
     const [d, m, y] = String(s).split("/");
     return (y && m && d) ? new Date(y, m - 1, d) : null;
@@ -613,8 +590,11 @@ function parseDateBR(s) {
   }
 
   function getUniqueLaunchCards() {
-    return Array.from(new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)))
-      .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
+    return Array.from(new Set(
+      tableData
+        .map(r => String(r["CARTÃO"] || r["CARTO"] || "").trim())
+        .filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
   }
 
   function parseAliases(s) {
@@ -628,14 +608,15 @@ function parseDateBR(s) {
 
   function sumOpenByLaunchCardText() {
     return tableData.reduce((acc, r) => {
-      const card = (r["CARTÃO"] || "").trim();
+      const card = String(r["CARTÃO"] || r["CARTO"] || "").trim();
       if (!card) return acc;
-      const st = (r["STATUS"] || "").trim();
+      const st = String(r["STATUS"] || "").trim();
       if (st === "Pago") return acc;
-      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      const v = parseMoneyBR(r["VALOR PARCELA"] || 0);
       acc[card] = (acc[card] || 0) + v;
       return acc;
     }, {});
+  }, {});
   }
 
   function sumOpenForLimitItem(item, openMap) {
@@ -1048,7 +1029,7 @@ function parseDateBR(s) {
     monthlyReportTable = $("#monthlyReportTable").DataTable({
       data: [],
       columns: [
-        { data: "DATA COMPRA", type: "date-eu" },
+        { data: "DATA COMPRA" },
         { data: "VALORES A RECEBER" },
         { data: "DESCRIÇÃO" },
         { data: "LOJA" },
@@ -1056,14 +1037,14 @@ function parseDateBR(s) {
         { data: "CARTÃO" },
         { data: null, render: d => `${d["PARCELA"]}/${d["TOTAL PARCELAS"]}`, className: "text-center" },
         { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)) },
-        { data: "DATA PAGTO", type: "date-eu" },
+        { data: "DATA PAGTO" },
         { data: "STATUS" }
       ],
       pageLength: 10,
       lengthMenu: [10, 25, 50, 100, -1],
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
       dom: "frtip",
-      order: [[0, "desc"]],
+      order: [[8, "asc"]],
       autoWidth: false,
       deferRender: true
     });
