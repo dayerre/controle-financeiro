@@ -110,6 +110,16 @@
   <div class="container pt-4">
     <div class="card">
       <h3 class="mb-4 text-center">Resumo Financeiro</h3>
+      <div class="d-flex flex-wrap justify-content-center align-items-center mb-3" style="gap:10px;">
+  <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width:160px;">
+    <option value="">Ano: Todos</option>
+  </select>
+
+  <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm">
+    Ocultar valores
+  </button>
+</div>
+
       <div class="row text-center">
         <div class="col-md-4 mb-3">
           <div class="summary-card bg-light shadow-sm">
@@ -437,6 +447,9 @@
   let gapiInited = false;
   let gisInited = false;
   let hasToken = false;
+  
+  let summaryYearValue = "";      // ex: "2026" ou "" (todos)
+  let summaryValuesHidden = false; // privacidade
 
   let tableData = [];
   let dataTable = null;
@@ -580,19 +593,36 @@
   }
 
   function updateDashboard() {
-    let totalG = 0, pago = 0, apagar = 0;
-    tableData.forEach(r => {
-      const v = parseMoneyBR(r["VALOR PARCELA"]);
-      totalG += v;
-      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
-      else apagar += v;
-    });
+  let totalG = 0, pago = 0, apagar = 0;
+
+  const year = summaryYearValue ? Number(summaryYearValue) : null;
+
+  tableData.forEach(r => {
+    // usa DATA PAGTO para o resumo anual
+    const dt = parseDateBR(r["DATA PAGTO"]);
+    if (!dt) return;
+
+    if (year !== null && dt.getFullYear() !== year) return;
+
+    const v = parseMoneyBR(r["VALOR PARCELA"]);
+    totalG += v;
+
+    if ((r["STATUS"] || "").trim() === "Pago") pago += v;
+    else apagar += v;
+  });
+
+  if (summaryValuesHidden) {
+    $("#totalGeral").text("••••");
+    $("#totalPago").text("••••");
+    $("#totalAPagar").text("••••");
+  } else {
     $("#totalGeral").text(formatMoneyBR(totalG));
     $("#totalPago").text(formatMoneyBR(pago));
     $("#totalAPagar").text(formatMoneyBR(apagar));
-
-    if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
   }
+
+  if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
+}
 
   function initTable() {
     if (dataTable) dataTable.destroy();
@@ -1384,6 +1414,44 @@
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
+
+function refreshSummaryYearOptions() {
+  const sel = $("#summaryYearFilter");
+  if (sel.length === 0) return;
+
+  const years = Array.from(new Set(
+    tableData
+      .map(r => parseDateBR(r["DATA PAGTO"]))
+      .filter(Boolean)
+      .map(d => d.getFullYear())
+  )).sort((a,b) => b-a);
+
+  const current = sel.val() || "";
+  sel.empty().append('<option value="">Ano: Todos</option>');
+  years.forEach(y => sel.append(`<option value="${y}">${y}</option>`));
+  sel.val(current);
+}
+
+$("#summaryYearFilter").off("change").on("change", function () {
+  summaryYearValue = this.value || "";
+  updateDashboard();
+});
+
+$("#btnToggleSummaryValues").off("click").on("click", function () {
+  summaryValuesHidden = !summaryValuesHidden;
+  $(this).text(summaryValuesHidden ? "Mostrar valores" : "Ocultar valores");
+  updateDashboard();
+});
+
+// sempre que os dados mudarem, atualiza lista de anos
+const _origUpdateAutoCompleteOptions2 = updateAutoCompleteOptions;
+updateAutoCompleteOptions = function () {
+  _origUpdateAutoCompleteOptions2();
+  try { refreshSummaryYearOptions(); } catch(e) {}
+};
+
+refreshSummaryYearOptions();
+
 
     $("#chkAutoSave").prop("checked", true);
     document.getElementById("btnLoadSheets").disabled = true;
