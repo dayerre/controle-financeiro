@@ -161,6 +161,17 @@
           <i class="bi bi-credit-card"></i> Limites de Cartão
         </button>
 
+        <!-- Filtros Lançamentos -->
+        <select id="launchCardFilter" class="form-control form-control-sm" style="max-width:220px">
+          <option value="">Cartão: Todos</option>
+        </select>
+
+        <input type="month" id="launchPayMonthFilter" class="form-control form-control-sm" style="max-width:180px">
+
+        <button id="btnClearLaunchFilters" type="button" class="btn btn-outline-secondary btn-sm">
+          Limpar filtros
+        </button>
+
         <button id="btnLoadSheets" class="btn btn-warning" type="button" disabled>Carregar do Sheets</button>
         <button id="btnSaveSheets" class="btn btn-warning" type="button" disabled>Salvar no Sheets</button>
 
@@ -468,7 +479,6 @@
     else if (kind === "err") el.classList.add("bg-danger","text-white");
     else el.classList.add("bg-light","text-secondary");
   }
-
   function normalizeRow(r) {
     return {
       "DATA COMPRA": (r["DATA COMPRA"] || "").trim(),
@@ -485,6 +495,74 @@
     };
   }
 
+  // -------------------------
+  // Filtros Lançamentos (NOVO)
+  // -------------------------
+  let launchPayMonthValue = ""; // "YYYY-MM"
+
+  // Filtro custom: Lançamentos por mês/ano da DATA PAGTO
+  // (DataTables custom filtering / ext.search)
+  $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+    // aplica só no DataTable de lançamentos
+    if (!dataTable || settings.nTable !== $("#dataTable")[0]) return true;
+
+    if (!launchPayMonthValue) return true;
+
+    // DATA PAGTO é a coluna 10 (0-based, contando a coluna checkbox como 0)
+    const dateStr = data[10];
+    const dt = parseDateBR(dateStr);
+    if (!dt) return false;
+
+    const parts = String(launchPayMonthValue).split("-");
+    if (parts.length !== 2) return true;
+
+    const y = Number(parts[0]);
+    const mo = Number(parts[1]); // 1..12
+    return dt.getFullYear() === y && (dt.getMonth() + 1) === mo;
+  });
+
+  // popula options do filtro de cartão (select)
+  function refreshLaunchCardFilterOptions() {
+    const sel = $("#launchCardFilter");
+    if (sel.length === 0) return;
+
+    const cards = Array.from(new Set(
+      tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const current = sel.val() || "";
+    sel.empty().append('<option value="">Cartão: Todos</option>');
+    cards.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
+    sel.val(current);
+  }
+
+  function bindLaunchFiltersEvents() {
+    // Cartão: filtro exclusivo por coluna
+    $("#launchCardFilter").off("change").on("change", function () {
+      const v = (this.value || "").trim();
+      if (!dataTable) return;
+      dataTable.column(6).search(v).draw(); // column().search
+    });
+
+    // Data Pagto (mês/ano): ext.search
+    $("#launchPayMonthFilter").off("change").on("change", function () {
+      launchPayMonthValue = this.value || "";
+      if (!dataTable) return;
+      dataTable.draw();
+    });
+
+    // Limpar
+    $("#btnClearLaunchFilters").off("click").on("click", function () {
+      $("#launchCardFilter").val("");
+      $("#launchPayMonthFilter").val("");
+      launchPayMonthValue = "";
+
+      if (!dataTable) return;
+      dataTable.column(6).search(""); // limpa cartão
+      dataTable.draw();               // reaplica ext.search sem mês
+    });
+  }
+
   function updateAutoCompleteOptions() {
     const receberSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
     const cartaoSet  = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
@@ -496,6 +574,9 @@
     const aliasSet = new Set((cardLimits || []).flatMap(c => (c.aliases || [])).filter(Boolean));
     const merged = new Set([...cartaoSet, ...aliasSet]);
     $("#cartaoOptions").html(Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join(""));
+
+    // NOVO: mantém o select de filtro “Cartão” atualizado
+    refreshLaunchCardFilterOptions();
   }
 
   function updateDashboard() {
@@ -538,6 +619,9 @@
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
       scrollX: true
     });
+
+    // NOVO: garante eventos do filtro sempre ativos (caso initTable rode de novo)
+    bindLaunchFiltersEvents();
 
     $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
       const cell = dataTable.cell(this);
@@ -1111,11 +1195,12 @@
     }, 50);
   });
 
+  // ✅ CORREÇÃO AQUI: não destruir a DataTable ao fechar o modal
   $("#monthlyReportModal").on("hidden.bs.modal", function () {
-    if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
-      $("#monthlyReportTable").DataTable().destroy(true); /* [web:73] */
+    // Mantém o DataTable vivo, evitando “sumir” o campo de busca ao reabrir
+    if (monthlyReportTable && $.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      monthlyReportTable.clear().draw();
     }
-    monthlyReportTable = null;
 
     $("#reportTotalGeral").text("R$ 0,00");
     $("#reportTotalPago").text("R$ 0,00");
