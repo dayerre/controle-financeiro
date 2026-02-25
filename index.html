@@ -608,7 +608,6 @@
   const recipient = summaryRecipientValue || null;
 
   tableData.forEach(r => {
-    // usa DATA PAGTO para o resumo anual
     const dt = parseDateBR(r["DATA PAGTO"]);
     if (!dt) return;
 
@@ -1112,27 +1111,44 @@
     alert("Totais atualizados com sucesso!");
   });
 
-  // ========= RELATÓRIO (corrigido: recria a tabela toda vez) =========
-  function updateReportTotalsFromMonthlyTable() {
-    if (!monthlyReportTable) return;
+  // ========= RELATÓRIOS MENSAIS =========
 
-    let total = 0, pago = 0, apagar = 0;
-    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
-    rows.forEach(r => {
-      const v = parseMoneyBR(r["VALOR PARCELA"]);
-      total += v;
-      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
-      else apagar += v;
+  // Função que (re)carrega os dados no relatório
+  function loadMonthlyReportData() {
+    if (!monthlyReportTable) {
+      buildMonthlyReportTable(); // só cria na primeira vez
+    }
+
+    const monthValue = $("#monthInput").val();
+    const recipient = $("#recipientSelect").val();
+    const card = $("#cardSelect").val();
+
+    const filtered = tableData.filter(row => {
+      const datePagto = parseDateBR(row["DATA PAGTO"]);
+      if (!datePagto) return false;
+
+      if (monthValue) {
+        const [y, m] = monthValue.split("-").map(Number);
+        if (datePagto.getFullYear() !== y) return false;
+        if ((datePagto.getMonth() + 1) !== m) return false;
+      }
+      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
+      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
+
+      return true;
     });
 
-    $("#reportTotalGeral").text(formatMoneyBR(total));
-    $("#reportTotalPago").text(formatMoneyBR(pago));
-    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+    monthlyReportTable.clear();
+    monthlyReportTable.rows.add(filtered);
+    monthlyReportTable.columns.adjust().draw(false);
+
+    updateReportTotalsFromMonthlyTable();
   }
 
+  // Cria a DataTable uma única vez (ou recria se necessário)
   function buildMonthlyReportTable() {
     if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
-      $("#monthlyReportTable").DataTable().destroy(true); /* remove wrapper/eventos */ /*  */
+      monthlyReportTable.destroy();
     }
 
     $("#monthlyReportTable").empty().append(`
@@ -1162,7 +1178,7 @@
         { data: "LOJA" },
         { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)) },
         { data: "CARTÃO" },
-        { data: null, render: d => `${d["PARCELA"]}/${d["TOTAL PARCELAS"]}`, className: "text-center" },
+        { data: null, render: d => `${d["PARCELA"] || 1}/${d["TOTAL PARCELAS"] || 1}`, className: "text-center" },
         { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)) },
         { data: "DATA PAGTO" },
         { data: "STATUS" }
@@ -1176,47 +1192,12 @@
       deferRender: true
     });
 
-    monthlyReportTable.off("draw.updateTotals").on("draw.updateTotals", function () {
-      updateReportTotalsFromMonthlyTable();
-    });
+    monthlyReportTable.on("draw", updateReportTotalsFromMonthlyTable);
   }
 
-  function updateReport() {
-    if (!monthlyReportTable || !$.fn.DataTable.isDataTable("#monthlyReportTable")) {
-      buildMonthlyReportTable();
-    }
-
-    const monthValue = $("#monthInput").val();
-    const recipient = $("#recipientSelect").val();
-    const card = $("#cardSelect").val();
-
-    const filtered = tableData.filter(row => {
-      const datePagto = parseDateBR(row["DATA PAGTO"]);
-      if (!datePagto) return false;
-
-      if (monthValue) {
-        const [y, m] = monthValue.split("-").map(Number);
-        if (datePagto.getFullYear() !== y) return false;
-        if ((datePagto.getMonth() + 1) !== m) return false;
-      }
-      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
-      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
-
-      return true;
-    });
-
-    monthlyReportTable.clear();
-    monthlyReportTable.rows.add(filtered);
-    monthlyReportTable.draw();
-
-    updateReportTotalsFromMonthlyTable();
-
-    setTimeout(() => {
-      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
-    }, 50);
-  }
-
-  $("#btnMonthlyReport").on("click", function () {
+  // Quando o modal é aberto → carrega os filtros e os dados
+  $("#monthlyReportModal").on("shown.bs.modal", function () {
+    // Popula os selects de filtro (só na abertura, para refletir dados atuais)
     const recipientSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
     const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
 
@@ -1228,43 +1209,59 @@
     selCard.empty().append(`<option value="Todos">Todos</option>`);
     Array.from(cardSet).sort().forEach(v => selCard.append(`<option value="${v}">${v}</option>`));
 
-    $("#monthlyReportModal").modal("show");
-  });
+    // Carrega os dados com os filtros atuais (ou padrão)
+    loadMonthlyReportData();
 
-  $("#monthInput, #recipientSelect, #cardSelect").on("change", updateReport);
-
-  $("#monthlyReportModal").on("shown.bs.modal", function () {
-    buildMonthlyReportTable();
-    updateReport();
-
+    // Ajuste de colunas (importante após carregar dados)
     setTimeout(() => {
-      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
-    }, 50);
+      monthlyReportTable.columns.adjust().draw(false);
+    }, 100);
   });
 
-  // ✅ CORREÇÃO AQUI: não destruir a DataTable ao fechar o modal
+  // Quando o modal é fechado → apenas limpa visualmente, mas mantém a tabela viva
   $("#monthlyReportModal").on("hidden.bs.modal", function () {
-    // Mantém o DataTable vivo, evitando “sumir” o campo de busca ao reabrir
-    if (monthlyReportTable && $.fn.DataTable.isDataTable("#monthlyReportTable")) {
-      monthlyReportTable.clear().draw();
+    if (monthlyReportTable) {
+      monthlyReportTable.clear().draw(false);
     }
 
+    // Reseta os totais exibidos
     $("#reportTotalGeral").text("R$ 0,00");
     $("#reportTotalPago").text("R$ 0,00");
     $("#reportTotalAPagar").text("R$ 0,00");
   });
 
+  // Atualiza quando qualquer filtro mudar
+  $("#monthInput, #recipientSelect, #cardSelect").on("change", loadMonthlyReportData);
+
+  // Botão de imprimir (mostra tudo)
   $("#btnPrintReport").on("click", function () {
-    if (!monthlyReportTable) { window.print(); return; }
+    if (!monthlyReportTable) return;
     const oldLen = monthlyReportTable.page.len();
-    monthlyReportTable.page.len(-1).draw();
+    monthlyReportTable.page.len(-1).draw(false);
 
     setTimeout(() => {
-      try { monthlyReportTable.columns.adjust().draw(false); } catch(e) {}
+      monthlyReportTable.columns.adjust().draw(false);
       window.print();
-      setTimeout(() => monthlyReportTable.page.len(oldLen).draw(), 300);
+      setTimeout(() => monthlyReportTable.page.len(oldLen).draw(false), 300);
     }, 200);
   });
+
+  function updateReportTotalsFromMonthlyTable() {
+    if (!monthlyReportTable) return;
+
+    let total = 0, pago = 0, apagar = 0;
+    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
+    rows.forEach(r => {
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      total += v;
+      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
+      else apagar += v;
+    });
+
+    $("#reportTotalGeral").text(formatMoneyBR(total));
+    $("#reportTotalPago").text(formatMoneyBR(pago));
+    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+  }
 
   function maybeEnableSheetsButtons() {
     if (gapiInited && gisInited) {
