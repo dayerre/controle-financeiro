@@ -278,8 +278,9 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="cardLimitsLabel">Limites de Cartão</h5>
+          <button id="btnLoadLimits" class="btn btn-warning btn-sm" type="button">Carregar do Sheets</button>
           <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true"></span>
+            <span aria-hidden="true">&times;</span>
           </button>
         </div>
 
@@ -372,7 +373,7 @@
         <div class="modal-header">
           <h5 class="modal-title" id="monthlyReportLabel">Relatórios Mensais Financeiros</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true"></span>
+            <span aria-hidden="true">&times;</span>
           </button>
         </div>
 
@@ -986,9 +987,15 @@
     renderCardLimitsTable();
   }
 
-  $("#btnCardLimits").on("click", function () {
+  $("#btnCardLimits").on("click", async function () {
+    await loadCardLimits();
     renderCardLimitsTable();
     $("#cardLimitsModal").modal("show");
+  });
+
+  $("#btnLoadLimits").on("click", async function () {
+    await loadCardLimits();
+    renderCardLimitsTable();
   });
 
   $("#btnShowHidden").on("click", function () {
@@ -1357,6 +1364,8 @@
         "STATUS": row[10]||"Em aberto"
       }));
 
+      await loadCardLimits();  // Carrega também os limites ao carregar os dados principais
+
       initTable();
       updateDashboard();
       updateAutoCompleteOptions();
@@ -1399,6 +1408,8 @@
         valueInputOption: "USER_ENTERED",
         resource: { values }
       });
+
+      await saveCardLimits();  // Salva também os limites ao salvar os dados principais
 
       setSheetsStatus("Sheets: salvo", "ok");
     } catch (err) {
