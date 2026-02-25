@@ -103,7 +103,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="navbar">Controle Financeiro - Dayerre</div>
 
@@ -111,17 +110,16 @@
     <div class="card">
       <h3 class="mb-4 text-center">Resumo Financeiro</h3>
       <div class="d-flex flex-wrap justify-content-center align-items-center mb-3" style="gap:10px;">
-  <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width:160px;">
-    <option value="">Ano: Todos</option>
-  </select>
-  <select id="summaryRecipientFilter" class="form-control form-control-sm" style="max-width:220px;">
-    <option value="">Recebedor: Todos</option>
-  </select>
-
-  <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm">
-    Ocultar valores
-  </button>
-</div>
+        <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width:160px;">
+          <option value="">Ano: Todos</option>
+        </select>
+        <select id="summaryRecipientFilter" class="form-control form-control-sm" style="max-width:220px;">
+          <option value="">Recebedor: Todos</option>
+        </select>
+        <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm">
+          Ocultar valores
+        </button>
+      </div>
 
       <div class="row text-center">
         <div class="col-md-4 mb-3">
@@ -146,6 +144,7 @@
           </div>
         </div>
       </div>
+
       <div id="overdueAlert" class="alert alert-danger text-center mt-3" style="display:none;">
         <i class="bi bi-exclamation-triangle"></i> Atenção: Existem parcelas vencidas no período filtrado!
       </div>
@@ -177,7 +176,6 @@
           <i class="bi bi-credit-card"></i> Limites de Cartão
         </button>
 
-        <!-- Filtros Lançamentos -->
         <select id="launchCardFilter" class="form-control form-control-sm" style="max-width:220px">
           <option value="">Cartão: Todos</option>
         </select>
@@ -439,11 +437,14 @@
   const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
   const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
   const SHEET_NAME = "Sheet1";
+  const CARD_LIMITS_SHEET_NAME = "CardLimits";
   const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
 
   const HEADERS = ["DATA COMPRA","VALORES A RECEBER","DESCRIÇÃO","LOJA","VALOR TOTAL","CARTÃO","TOTAL PARCELAS","PARCELA","VALOR PARCELA","DATA PAGTO","STATUS"];
   const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
   const WRITE_START_A1 = `${SHEET_NAME}!A1`;
+  const CARD_LIMITS_RANGE = `${CARD_LIMITS_SHEET_NAME}!A:H`;
+  const CARD_LIMITS_WRITE_START = `${CARD_LIMITS_SHEET_NAME}!A1`;
 
   const LS_LIMITS_KEY = "cf_dayerre_card_limits_v3";
   let cardLimits = [];
@@ -454,9 +455,9 @@
   let gisInited = false;
   let hasToken = false;
   
-  let summaryYearValue = "";      // ex: "2026" ou "" (todos)
-  let summaryRecipientValue = ""; // ex: "Dayerre" ou "" (todos)
-  let summaryValuesHidden = false; // privacidade
+  let summaryYearValue = "";
+  let summaryRecipientValue = "";
+  let summaryValuesHidden = false;
 
   let tableData = [];
   let dataTable = null;
@@ -466,6 +467,7 @@
     if (isNaN(num) || num === null) return "R$ 0,00";
     return "R$ " + Number(num).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+
   function parseMoneyBR(str) {
     if (str === null || str === undefined) return 0;
     const cleaned = String(str).replace(/\s/g, "").replace(/^R\$/i, "").replace(/[^0-9,.\-]/g, "");
@@ -473,16 +475,19 @@
     if (cleaned.includes(",")) return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
     return parseFloat(cleaned) || 0;
   }
+
   function parseDateBR(s) {
     if (!s) return null;
     const [d, m, y] = String(s).split("/");
     return (y && m && d) ? new Date(y, m - 1, d) : null;
   }
+
   function formatDateBR(date) {
     const d = String(date.getDate()).padStart(2, "0");
     const m = String(date.getMonth() + 1).padStart(2, "0");
     return `${d}/${m}/${date.getFullYear()}`;
   }
+
   function addMonthsToDateBR(s, months) {
     const d = parseDateBR(s);
     if (!d) return s;
@@ -499,6 +504,7 @@
     else if (kind === "err") el.classList.add("bg-danger","text-white");
     else el.classList.add("bg-light","text-secondary");
   }
+
   function normalizeRow(r) {
     return {
       "DATA COMPRA": (r["DATA COMPRA"] || "").trim(),
@@ -515,41 +521,27 @@
     };
   }
 
-  // -------------------------
-  // Filtros Lançamentos (NOVO)
-  // -------------------------
-  let launchPayMonthValue = ""; // "YYYY-MM"
+  let launchPayMonthValue = "";
 
-  // Filtro custom: Lançamentos por mês/ano da DATA PAGTO
-  // (DataTables custom filtering / ext.search)
   $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-    // aplica só no DataTable de lançamentos
     if (!dataTable || settings.nTable !== $("#dataTable")[0]) return true;
-
     if (!launchPayMonthValue) return true;
-
-    // DATA PAGTO é a coluna 10 (0-based, contando a coluna checkbox como 0)
     const dateStr = data[10];
     const dt = parseDateBR(dateStr);
     if (!dt) return false;
-
     const parts = String(launchPayMonthValue).split("-");
     if (parts.length !== 2) return true;
-
     const y = Number(parts[0]);
-    const mo = Number(parts[1]); // 1..12
+    const mo = Number(parts[1]);
     return dt.getFullYear() === y && (dt.getMonth() + 1) === mo;
   });
 
-  // popula options do filtro de cartão (select)
   function refreshLaunchCardFilterOptions() {
     const sel = $("#launchCardFilter");
     if (sel.length === 0) return;
-
     const cards = Array.from(new Set(
       tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)
     )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-
     const current = sel.val() || "";
     sel.empty().append('<option value="">Cartão: Todos</option>');
     cards.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
@@ -557,88 +549,81 @@
   }
 
   function bindLaunchFiltersEvents() {
-    // Cartão: filtro exclusivo por coluna
     $("#launchCardFilter").off("change").on("change", function () {
       const v = (this.value || "").trim();
       if (!dataTable) return;
-      dataTable.column(6).search(v).draw(); // column().search
+      dataTable.column(6).search(v).draw();
     });
 
-    // Data Pagto (mês/ano): ext.search
     $("#launchPayMonthFilter").off("change").on("change", function () {
       launchPayMonthValue = this.value || "";
       if (!dataTable) return;
       dataTable.draw();
     });
 
-    // Limpar
     $("#btnClearLaunchFilters").off("click").on("click", function () {
       $("#launchCardFilter").val("");
       $("#launchPayMonthFilter").val("");
       launchPayMonthValue = "";
-
       if (!dataTable) return;
-      dataTable.column(6).search(""); // limpa cartão
-      dataTable.draw();               // reaplica ext.search sem mês
+      dataTable.column(6).search("").draw();
     });
   }
 
   function updateAutoCompleteOptions() {
     const receberSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
-    const cartaoSet  = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
-    const lojaSet    = new Set(tableData.map(r => r["LOJA"]).filter(Boolean));
+    const cartaoSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+    const lojaSet = new Set(tableData.map(r => r["LOJA"]).filter(Boolean));
 
     $("#receberOptions").html(Array.from(receberSet).sort().map(v => `<option value="${v}"></option>`).join(""));
     $("#lojaOptions").html(Array.from(lojaSet).sort().map(v => `<option value="${v}"></option>`).join(""));
 
-    const aliasSet = new Set((cardLimits || []).flatMap(c => (c.aliases || [])).filter(Boolean));
+    const aliasSet = new Set(cardLimits.flatMap(c => c.aliases || []).filter(Boolean));
     const merged = new Set([...cartaoSet, ...aliasSet]);
     $("#cartaoOptions").html(Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join(""));
 
-    // NOVO: mantém o select de filtro “Cartão” atualizado
     refreshLaunchCardFilterOptions();
   }
 
   function updateDashboard() {
-  let totalG = 0, pago = 0, apagar = 0;
-  let hasOverdue = false;
-  const now = new Date();
+    let totalG = 0, pago = 0, apagar = 0;
+    let hasOverdue = false;
+    const now = new Date();
 
-  const year = summaryYearValue ? Number(summaryYearValue) : null;
-  const recipient = summaryRecipientValue || null;
+    const year = summaryYearValue ? Number(summaryYearValue) : null;
+    const recipient = summaryRecipientValue || null;
 
-  tableData.forEach(r => {
-    const dt = parseDateBR(r["DATA PAGTO"]);
-    if (!dt) return;
+    tableData.forEach(r => {
+      const dt = parseDateBR(r["DATA PAGTO"]);
+      if (!dt) return;
+      if (year !== null && dt.getFullYear() !== year) return;
+      if (recipient !== null && (r["VALORES A RECEBER"] || "").trim() !== recipient) return;
 
-    if (year !== null && dt.getFullYear() !== year) return;
-    if (recipient !== null && (r["VALORES A RECEBER"] || "").trim() !== recipient) return;
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      totalG += v;
 
-    const v = parseMoneyBR(r["VALOR PARCELA"]);
-    totalG += v;
+      const status = (r["STATUS"] || "").trim();
+      if (status === "Pago") pago += v;
+      else {
+        apagar += v;
+        if (dt < now) hasOverdue = true;
+      }
+    });
 
-    const status = (r["STATUS"] || "").trim();
-    if (status === "Pago") pago += v;
-    else {
-      apagar += v;
-      if (dt < now) hasOverdue = true;
+    if (summaryValuesHidden) {
+      $("#totalGeral").text("••••");
+      $("#totalPago").text("••••");
+      $("#totalAPagar").text("••••");
+    } else {
+      $("#totalGeral").text(formatMoneyBR(totalG));
+      $("#totalPago").text(formatMoneyBR(pago));
+      $("#totalAPagar").text(formatMoneyBR(apagar));
     }
-  });
 
-  if (summaryValuesHidden) {
-    $("#totalGeral").text("••••");
-    $("#totalPago").text("••••");
-    $("#totalAPagar").text("••••");
-  } else {
-    $("#totalGeral").text(formatMoneyBR(totalG));
-    $("#totalPago").text(formatMoneyBR(pago));
-    $("#totalAPagar").text(formatMoneyBR(apagar));
+    $("#overdueAlert").toggle(hasOverdue);
+
+    if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
   }
-
-  if (hasOverdue) $("#overdueAlert").show(); else $("#overdueAlert").hide();
-
-  if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
-}
 
   function initTable() {
     if (dataTable) dataTable.destroy();
@@ -666,7 +651,6 @@
       scrollX: true
     });
 
-    // NOVO: garante eventos do filtro sempre ativos (caso initTable rode de novo)
     bindLaunchFiltersEvents();
 
     $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
@@ -680,7 +664,6 @@
 
       input.on("blur", async function () {
         let newVal = input.val().trim();
-
         if (field.includes("VALOR")) newVal = formatMoneyBR(parseMoneyBR(newVal));
         else if (field.includes("TOTAL PARCELAS") || field === "PARCELA") newVal = parseInt(newVal) || 0;
 
@@ -705,32 +688,101 @@
     });
   }
 
-  // ---- Limites v3
-  function loadCardLimits() {
+  // ──────────────────────────────────────────────────────────────────────────────
+  // Limites de Cartão - GOOGLE SHEETS
+  // ──────────────────────────────────────────────────────────────────────────────
+
+  async function loadCardLimits() {
+    const ok = await ensureAccessToken();
+    if (ok) {
+      try {
+        const response = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: CARD_LIMITS_RANGE
+        });
+        const rows = response.result.values || [];
+
+        if (rows.length > 1) {
+          cardLimits = rows.slice(1).map(row => ({
+            id: row[0] || String(Date.now()),
+            bank: row[1] || "",
+            brand: row[2] || "",
+            category: row[3] || "",
+            total: row[4] ? parseMoneyBR(row[4]) : null,
+            aliases: row[5] ? parseAliases(row[5]) : [],
+            hidden: row[6] === "TRUE",
+            placeholder: row[7] === "TRUE"
+          }));
+          console.log(`[CardLimits] Carregados ${cardLimits.length} itens do Sheets`);
+          return;
+        }
+      } catch (err) {
+        console.warn("[CardLimits] Falha ao carregar do Sheets:", err);
+      }
+    }
+
     try {
       const raw = localStorage.getItem(LS_LIMITS_KEY);
       cardLimits = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(cardLimits)) cardLimits = [];
+      console.log("[CardLimits] Carregado do localStorage (fallback)");
     } catch (e) {
       cardLimits = [];
     }
   }
-  function saveCardLimits() {
-    localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits || []));
+
+  async function saveCardLimits() {
+    const ok = await ensureAccessToken();
+    if (!ok) {
+      localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+      console.warn("[CardLimits] Não autenticado → salvo apenas localmente");
+      return;
+    }
+
+    try {
+      const values = [
+        ["id", "bank", "brand", "category", "total", "aliases", "hidden", "placeholder"],
+        ...cardLimits.map(item => [
+          item.id,
+          item.bank || "",
+          item.brand || "",
+          item.category || "",
+          item.total != null ? item.total : "",
+          (item.aliases || []).join("; "),
+          item.hidden ? "TRUE" : "FALSE",
+          item.placeholder ? "TRUE" : "FALSE"
+        ])
+      ];
+
+      await gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId: SPREADSHEET_ID,
+        range: CARD_LIMITS_RANGE
+      });
+
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: CARD_LIMITS_WRITE_START,
+        valueInputOption: "USER_ENTERED",
+        resource: { values }
+      });
+
+      console.log("[CardLimits] Salvo no Sheets com sucesso");
+      localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+    } catch (err) {
+      console.error("[CardLimits] Erro ao salvar no Sheets:", err);
+      localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+    }
+  }
+
+  function parseAliases(s) {
+    return Array.from(new Set(
+      String(s || "").split(";").map(x => x.trim()).filter(Boolean)
+    ));
   }
 
   function getUniqueLaunchCards() {
     return Array.from(new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)))
       .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
-  }
-
-  function parseAliases(s) {
-    return Array.from(new Set(
-      String(s || "")
-        .split(";")
-        .map(x => x.trim())
-        .filter(Boolean)
-    ));
   }
 
   function sumOpenByLaunchCardText() {
@@ -797,10 +849,7 @@
 
   function renderCardLimitsTable() {
     fillLaunchCardSelect();
-
     ensurePlaceholderItemsForLaunchCards();
-    saveCardLimits();
-
     const openMap = sumOpenByLaunchCardText();
     const tbody = $("#limitsTbody");
     tbody.empty();
@@ -821,21 +870,17 @@
     items.forEach(item => {
       const displayName = (item.aliases && item.aliases[0]) ? item.aliases[0] : "(sem nome)";
       const open = sumOpenForLimitItem(item, openMap);
-
-      const total = (item.total === null || item.total === undefined) ? null : (Number(item.total) || 0);
+      const total = (item.total === null || item.total === undefined) ? null : Number(item.total);
       const free = (total === null) ? null : (total - open);
-
       const hasLimit = total !== null;
 
-      const freeClass =
-        !hasLimit ? "text-muted" :
-        free < 0 ? "text-danger" :
-        free < total * 0.15 ? "text-warning" :
-        "text-success";
+      const freeClass = !hasLimit ? "text-muted" :
+                        free < 0 ? "text-danger" :
+                        free < total * 0.15 ? "text-warning" : "text-success";
 
       const categoryTag = item.category ? `<span class="tag">${String(item.category).toUpperCase()}</span>` : "";
       const hiddenTag = item.hidden ? `<span class="badge badge-secondary ml-2">Oculto</span>` : "";
-      const noLimitTag = !hasLimit ? `<span class="badge badge-warning ml-2">Sem limite cadastrado</span>` : "";
+      const noLimitTag = !hasLimit ? `<span class="badge badge-warning ml-2">Sem limite</span>` : "";
 
       const aliasesHtml = (item.aliases || []).slice(0, 6).map(a => `<span class="tag">${a}</span>`).join("");
 
@@ -867,12 +912,12 @@
     $("#limitBank").val(item.bank || "");
     $("#limitBrand").val(item.brand || "");
     $("#limitCategory").val(item.category || "");
-    $("#limitTotal").val(item.total === null || item.total === undefined ? "" : String(item.total));
+    $("#limitTotal").val(item.total == null ? "" : String(item.total));
     $("#limitAliases").val((item.aliases || []).join("; "));
     $("#btnSaveLimit").data("editId", item.id);
   }
 
-  function upsertLimit() {
+  async function upsertLimit() {
     const editId = $("#btnSaveLimit").data("editId") || "";
     const bank = $("#limitBank").val().trim();
     const brand = $("#limitBrand").val().trim();
@@ -881,77 +926,62 @@
     const total = totalRaw ? parseMoneyBR(totalRaw) : null;
     const aliases = parseAliases($("#limitAliases").val());
 
-    if (aliases.length === 0) { alert("Informe pelo menos 1 alias (texto do campo CARTÃO)."); return; }
-    if (total !== null && !(total > 0)) { alert("Limite total inválido (ou deixe em branco)."); return; }
+    if (aliases.length === 0) { alert("Informe pelo menos 1 alias."); return; }
+    if (total !== null && total <= 0) { alert("Limite total inválido."); return; }
 
     const aliasConflicts = [];
     aliases.forEach(a => {
       cardLimits.forEach(it => {
         if (it.id === editId) return;
-        const itAliases = it.aliases || [];
-        const itHasLimit = !(it.total === null || it.total === undefined);
-        if (itHasLimit && itAliases.includes(a)) aliasConflicts.push({ alias:a, other:(itAliases[0]||it.id) });
+        if (it.total != null && (it.aliases || []).includes(a)) {
+          aliasConflicts.push(a);
+        }
       });
     });
     if (aliasConflicts.length > 0) {
-      alert("Esse alias já está sendo usado por outro cartão com limite: " + aliasConflicts[0].alias);
+      alert("Alias já usado em outro cartão com limite: " + aliasConflicts[0]);
       return;
     }
 
     if (editId) {
       const idx = cardLimits.findIndex(x => x.id === editId);
       if (idx >= 0) {
-        cardLimits[idx] = {
-          ...cardLimits[idx],
-          bank, brand, category,
-          total,
-          aliases,
-          placeholder: false,
-          hidden: false
-        };
+        cardLimits[idx] = { ...cardLimits[idx], bank, brand, category, total, aliases, placeholder: false, hidden: false };
       }
     } else {
       cardLimits.push({
         id: String(Date.now()),
-        bank, brand, category,
-        total,
-        aliases,
-        hidden: false,
-        placeholder: false
+        bank, brand, category, total, aliases,
+        hidden: false, placeholder: false
       });
     }
 
-    const usedAliasSingles = new Set(cardLimits.filter(x => !x.placeholder).flatMap(x => x.aliases || []));
-    cardLimits = cardLimits.filter(x => {
-      if (!x.placeholder) return true;
-      const a0 = (x.aliases || [])[0];
-      if (!a0) return false;
-      return !usedAliasSingles.has(a0);
-    });
+    const used = new Set(cardLimits.filter(x => !x.placeholder).flatMap(x => x.aliases || []));
+    cardLimits = cardLimits.filter(x => !x.placeholder || !used.has(x.aliases[0]));
 
-    saveCardLimits();
+    await saveCardLimits();
     updateAutoCompleteOptions();
     renderCardLimitsTable();
     clearLimitForm();
   }
 
-  function deleteLimit(id) {
+  async function deleteLimit(id) {
     const item = cardLimits.find(x => x.id === id);
     if (!item) return;
-    if (!confirm(`Excluir este cadastro de limite? (Não altera lançamentos)`)) return;
+    if (!confirm("Excluir este limite?")) return;
 
     cardLimits = cardLimits.filter(x => x.id !== id);
-    saveCardLimits();
+    await saveCardLimits();
     updateAutoCompleteOptions();
     renderCardLimitsTable();
     clearLimitForm();
   }
 
-  function toggleHidden(id) {
+  async function toggleHidden(id) {
     const idx = cardLimits.findIndex(x => x.id === id);
     if (idx < 0) return;
     cardLimits[idx].hidden = !cardLimits[idx].hidden;
-    saveCardLimits();
+    await saveCardLimits();
     renderCardLimitsTable();
   }
 
@@ -980,8 +1010,7 @@
   $("#limitsTbody").on("click", ".btnEditLimit", function () {
     const id = $(this).data("id");
     const item = cardLimits.find(x => x.id === id);
-    if (!item) return;
-    setFormFromItem(item);
+    if (item) setFormFromItem(item);
   });
 
   $("#limitsTbody").on("click", ".btnDeleteLimit", function () {
@@ -994,7 +1023,6 @@
     toggleHidden(id);
   });
 
-  // ---- Lançamentos
   $("#btnAddRow").on("click", function () {
     $("#addRowForm").slideToggle(300);
     updateAutoCompleteOptions();
@@ -1016,6 +1044,7 @@
   });
 
   $("#newValorTotal").on("input", function () { this.value = this.value.replace(/[^0-9,.\-]/g, ""); });
+
   $("#newValorTotal, #newTotalParcelas").on("input change", function () {
     const total = parseMoneyBR($("#newValorTotal").val());
     const parc = parseInt($("#newTotalParcelas").val()) || 1;
@@ -1111,44 +1140,24 @@
     alert("Totais atualizados com sucesso!");
   });
 
-  // ========= RELATÓRIOS MENSAIS =========
-
-  // Função que (re)carrega os dados no relatório
-  function loadMonthlyReportData() {
-    if (!monthlyReportTable) {
-      buildMonthlyReportTable(); // só cria na primeira vez
-    }
-
-    const monthValue = $("#monthInput").val();
-    const recipient = $("#recipientSelect").val();
-    const card = $("#cardSelect").val();
-
-    const filtered = tableData.filter(row => {
-      const datePagto = parseDateBR(row["DATA PAGTO"]);
-      if (!datePagto) return false;
-
-      if (monthValue) {
-        const [y, m] = monthValue.split("-").map(Number);
-        if (datePagto.getFullYear() !== y) return false;
-        if ((datePagto.getMonth() + 1) !== m) return false;
-      }
-      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
-      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
-
-      return true;
+  function updateReportTotalsFromMonthlyTable() {
+    if (!monthlyReportTable) return;
+    let total = 0, pago = 0, apagar = 0;
+    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
+    rows.forEach(r => {
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      total += v;
+      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
+      else apagar += v;
     });
-
-    monthlyReportTable.clear();
-    monthlyReportTable.rows.add(filtered);
-    monthlyReportTable.columns.adjust().draw(false);
-
-    updateReportTotalsFromMonthlyTable();
+    $("#reportTotalGeral").text(formatMoneyBR(total));
+    $("#reportTotalPago").text(formatMoneyBR(pago));
+    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
   }
 
-  // Cria a DataTable uma única vez (ou recria se necessário)
   function buildMonthlyReportTable() {
     if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
-      monthlyReportTable.destroy();
+      $("#monthlyReportTable").DataTable().destroy(true);
     }
 
     $("#monthlyReportTable").empty().append(`
@@ -1195,79 +1204,70 @@
     monthlyReportTable.on("draw", updateReportTotalsFromMonthlyTable);
   }
 
-  // Quando o modal é aberto → carrega os filtros e os dados
-  $("#monthlyReportModal").on("shown.bs.modal", function () {
-    // Popula os selects de filtro (só na abertura, para refletir dados atuais)
-    const recipientSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
+  function loadMonthlyReportData() {
+    if (!monthlyReportTable) buildMonthlyReportTable();
+
+    const monthValue = $("#monthInput").val();
+    const recipient = $("#recipientSelect").val();
+    const card = $("#cardSelect").val();
+
+    const filtered = tableData.filter(row => {
+      const dt = parseDateBR(row["DATA PAGTO"]);
+      if (!dt) return false;
+      if (monthValue) {
+        const [y, m] = monthValue.split("-").map(Number);
+        if (dt.getFullYear() !== y || (dt.getMonth() + 1) !== m) return false;
+      }
+      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
+      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
+      return true;
+    });
+
+    monthlyReportTable.clear().rows.add(filtered).draw(false);
+    setTimeout(() => monthlyReportTable.columns.adjust().draw(false), 100);
+    updateReportTotalsFromMonthlyTable();
+  }
+
+  $("#btnMonthlyReport").on("click", function () {
+    const recSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
     const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
 
-    const selRec = $("#recipientSelect");
-    selRec.empty().append(`<option value="Todos">Todos</option>`);
-    Array.from(recipientSet).sort().forEach(v => selRec.append(`<option value="${v}">${v}</option>`));
+    $("#recipientSelect").empty().append('<option value="Todos">Todos</option>');
+    [...recSet].sort().forEach(v => $("#recipientSelect").append(`<option value="${v}">${v}</option>`));
 
-    const selCard = $("#cardSelect");
-    selCard.empty().append(`<option value="Todos">Todos</option>`);
-    Array.from(cardSet).sort().forEach(v => selCard.append(`<option value="${v}">${v}</option>`));
+    $("#cardSelect").empty().append('<option value="Todos">Todos</option>');
+    [...cardSet].sort().forEach(v => $("#cardSelect").append(`<option value="${v}">${v}</option>`));
 
-    // Carrega os dados com os filtros atuais (ou padrão)
-    loadMonthlyReportData();
-
-    // Ajuste de colunas (importante após carregar dados)
-    setTimeout(() => {
-      monthlyReportTable.columns.adjust().draw(false);
-    }, 100);
+    $("#monthlyReportModal").modal("show");
   });
 
-  // Quando o modal é fechado → apenas limpa visualmente, mas mantém a tabela viva
-  $("#monthlyReportModal").on("hidden.bs.modal", function () {
-    if (monthlyReportTable) {
-      monthlyReportTable.clear().draw(false);
-    }
-
-    // Reseta os totais exibidos
-    $("#reportTotalGeral").text("R$ 0,00");
-    $("#reportTotalPago").text("R$ 0,00");
-    $("#reportTotalAPagar").text("R$ 0,00");
-  });
-
-  // Atualiza quando qualquer filtro mudar
   $("#monthInput, #recipientSelect, #cardSelect").on("change", loadMonthlyReportData);
 
-  // Botão de imprimir (mostra tudo)
+  $("#monthlyReportModal").on("shown.bs.modal", function () {
+    loadMonthlyReportData();
+    setTimeout(() => monthlyReportTable?.columns.adjust().draw(false), 100);
+  });
+
+  $("#monthlyReportModal").on("hidden.bs.modal", function () {
+    monthlyReportTable?.clear().draw(false);
+    $("#reportTotalGeral, #reportTotalPago, #reportTotalAPagar").text("R$ 0,00");
+  });
+
   $("#btnPrintReport").on("click", function () {
     if (!monthlyReportTable) return;
-    const oldLen = monthlyReportTable.page.len();
+    const old = monthlyReportTable.page.len();
     monthlyReportTable.page.len(-1).draw(false);
-
     setTimeout(() => {
       monthlyReportTable.columns.adjust().draw(false);
       window.print();
-      setTimeout(() => monthlyReportTable.page.len(oldLen).draw(false), 300);
+      monthlyReportTable.page.len(old).draw(false);
     }, 200);
   });
 
-  function updateReportTotalsFromMonthlyTable() {
-    if (!monthlyReportTable) return;
-
-    let total = 0, pago = 0, apagar = 0;
-    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
-    rows.forEach(r => {
-      const v = parseMoneyBR(r["VALOR PARCELA"]);
-      total += v;
-      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
-      else apagar += v;
-    });
-
-    $("#reportTotalGeral").text(formatMoneyBR(total));
-    $("#reportTotalPago").text(formatMoneyBR(pago));
-    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
-  }
-
   function maybeEnableSheetsButtons() {
     if (gapiInited && gisInited) {
-      document.getElementById("btnLoadSheets").disabled = false;
-      document.getElementById("btnSaveSheets").disabled = false;
-      setSheetsStatus("Sheets: pronto (faça login para carregar/salvar)", "warn");
+      $("#btnLoadSheets, #btnSaveSheets").prop("disabled", false);
+      setSheetsStatus("Sheets: pronto (faça login)", "warn");
     }
   }
 
@@ -1278,9 +1278,8 @@
         gapiInited = true;
         maybeEnableSheetsButtons();
       } catch (e) {
-        console.error("Falha ao inicializar gapi.client:", e);
-        setSheetsStatus("Sheets: erro ao iniciar gapi", "err");
-        alert("Falha ao inicializar Google API (gapi). Veja o console (F12).");
+        console.error(e);
+        setSheetsStatus("Sheets: erro gapi", "err");
       }
     });
   };
@@ -1290,11 +1289,9 @@
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: "https://www.googleapis.com/auth/spreadsheets",
-        callback: (tokenResponse) => {
-          if (tokenResponse && tokenResponse.error) {
-            console.error("Erro OAuth:", tokenResponse);
-            setSheetsStatus("Sheets: erro no login", "err");
-            alert("Erro na autorização: " + tokenResponse.error);
+        callback: tokenResponse => {
+          if (tokenResponse.error) {
+            setSheetsStatus("Sheets: erro login", "err");
             return;
           }
           hasToken = true;
@@ -1304,9 +1301,8 @@
       gisInited = true;
       maybeEnableSheetsButtons();
     } catch (e) {
-      console.error("Falha ao inicializar GIS tokenClient:", e);
-      setSheetsStatus("Sheets: erro ao iniciar login", "err");
-      alert("Falha ao inicializar Google Identity Services. Veja o console (F12).");
+      console.error(e);
+      setSheetsStatus("Sheets: erro GIS", "err");
     }
   };
 
@@ -1314,11 +1310,10 @@
     if (hasToken) return true;
     if (!tokenClient) return false;
 
-    return new Promise((resolve) => {
-      tokenClient.callback = (tokenResponse) => {
-        if (tokenResponse && tokenResponse.error) {
-          console.error("Erro OAuth:", tokenResponse);
-          setSheetsStatus("Sheets: erro no login", "err");
+    return new Promise(resolve => {
+      tokenClient.callback = tokenResponse => {
+        if (tokenResponse.error) {
+          setSheetsStatus("Sheets: erro login", "err");
           resolve(false);
           return;
         }
@@ -1331,56 +1326,45 @@
   }
 
   async function loadFromSheets() {
-    const ok = await ensureAccessToken();
-    if (!ok) { alert("Não foi possível autenticar no Google."); return; }
-
+    if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
     try {
       setSheetsStatus("Sheets: carregando…", "warn");
-      const response = await gapi.client.sheets.spreadsheets.values.get({
+      const res = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: DATA_RANGE_A1
       });
-      const rows = response.result.values || [];
-
-      if (rows.length <= 1) tableData = [];
-      else {
-        tableData = rows.slice(1).map(row => normalizeRow({
-          "DATA COMPRA": row[0] || "",
-          "VALORES A RECEBER": row[1] || "",
-          "DESCRIÇÃO": row[2] || "",
-          "LOJA": row[3] || "",
-          "VALOR TOTAL": row[4] || "0",
-          "CARTÃO": row[5] || "",
-          "TOTAL PARCELAS": row[6] || 1,
-          "PARCELA": row[7] || 1,
-          "VALOR PARCELA": row[8] || "0",
-          "DATA PAGTO": row[9] || "",
-          "STATUS": row[10] || "Em aberto"
-        }));
-      }
+      const rows = res.result.values || [];
+      tableData = rows.slice(1).map(row => normalizeRow({
+        "DATA COMPRA": row[0]||"",
+        "VALORES A RECEBER": row[1]||"",
+        "DESCRIÇÃO": row[2]||"",
+        "LOJA": row[3]||"",
+        "VALOR TOTAL": row[4]||"0",
+        "CARTÃO": row[5]||"",
+        "TOTAL PARCELAS": row[6]||1,
+        "PARCELA": row[7]||1,
+        "VALOR PARCELA": row[8]||"0",
+        "DATA PAGTO": row[9]||"",
+        "STATUS": row[10]||"Em aberto"
+      }));
 
       initTable();
       updateDashboard();
       updateAutoCompleteOptions();
-
       setSheetsStatus("Sheets: carregado", "ok");
     } catch (err) {
-      console.error("Erro ao carregar planilha:", err);
+      console.error(err);
       setSheetsStatus("Sheets: erro ao carregar", "err");
-      alert("Erro ao carregar do Sheets. Veja o console (F12).");
     }
   }
 
   async function saveAllToSheets() {
-    const ok = await ensureAccessToken();
-    if (!ok) { alert("Não foi possível autenticar no Google."); return; }
-
+    if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
     try {
       setSheetsStatus("Sheets: salvando…", "warn");
-
       const values = [
         HEADERS,
-        ...tableData.map(r => ([
+        ...tableData.map(r => [
           r["DATA COMPRA"],
           r["VALORES A RECEBER"],
           r["DESCRIÇÃO"],
@@ -1392,7 +1376,7 @@
           r["VALOR PARCELA"],
           r["DATA PAGTO"],
           r["STATUS"]
-        ]))
+        ])
       ];
 
       await gapi.client.sheets.spreadsheets.values.clear({
@@ -1409,37 +1393,18 @@
 
       setSheetsStatus("Sheets: salvo", "ok");
     } catch (err) {
-      console.error("Erro ao salvar no Sheets:", err);
+      console.error(err);
       setSheetsStatus("Sheets: erro ao salvar", "err");
-      alert("Erro ao salvar no Sheets. Veja o console (F12).");
     }
   }
 
   $("#btnLoadSheets").on("click", loadFromSheets);
   $("#btnSaveSheets").on("click", saveAllToSheets);
-$("#btnMonthlyReport").on("click", function () {
-  // Popula os selects (caso queira recarregar toda vez que abrir)
-  const recipientSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
-  const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
 
-  $("#recipientSelect")
-    .empty()
-    .append('<option value="Todos">Todos</option>')
-    .append([...recipientSet].sort().map(v => `<option value="${v}">${v}</option>`).join(""));
-
-  $("#cardSelect")
-    .empty()
-    .append('<option value="Todos">Todos</option>')
-    .append([...cardSet].sort().map(v => `<option value="${v}">${v}</option>`).join(""));
-
-  // Abre o modal
-  $("#monthlyReportModal").modal("show");
-});
-
-  $(document).ready(function () {
+  $(document).ready(async function () {
     setSheetsStatus("Sheets: aguardando bibliotecas…", "warn");
 
-    loadCardLimits();
+    await loadCardLimits();
     clearLimitForm();
 
     tableData = [];
@@ -1447,71 +1412,59 @@ $("#btnMonthlyReport").on("click", function () {
     updateDashboard();
     updateAutoCompleteOptions();
 
-function refreshSummaryYearOptions() {
-  const sel = $("#summaryYearFilter");
-  if (sel.length === 0) return;
+    function refreshSummaryYearOptions() {
+      const sel = $("#summaryYearFilter");
+      if (sel.length === 0) return;
+      const years = Array.from(new Set(
+        tableData.map(r => parseDateBR(r["DATA PAGTO"])?.getFullYear()).filter(Boolean)
+      )).sort((a,b) => b-a);
+      const current = sel.val() || "";
+      sel.empty().append('<option value="">Ano: Todos</option>');
+      years.forEach(y => sel.append(`<option value="${y}">${y}</option>`));
+      sel.val(current);
+    }
 
-  const years = Array.from(new Set(
-    tableData
-      .map(r => parseDateBR(r["DATA PAGTO"]))
-      .filter(Boolean)
-      .map(d => d.getFullYear())
-  )).sort((a,b) => b-a);
+    function refreshSummaryRecipientOptions() {
+      const sel = $("#summaryRecipientFilter");
+      if (sel.length === 0) return;
+      const recs = Array.from(new Set(tableData.map(r => r["VALORES A RECEBER"].trim()).filter(Boolean))).sort();
+      const current = sel.val() || "";
+      sel.empty().append('<option value="">Recebedor: Todos</option>');
+      recs.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
+      sel.val(current);
+    }
 
-  const current = sel.val() || "";
-  sel.empty().append('<option value="">Ano: Todos</option>');
-  years.forEach(y => sel.append(`<option value="${y}">${y}</option>`));
-  sel.val(current);
-}
+    $("#summaryYearFilter").on("change", function() {
+      summaryYearValue = this.value;
+      updateDashboard();
+    });
 
-function refreshSummaryRecipientOptions() {
-  const sel = $("#summaryRecipientFilter");
-  if (sel.length === 0) return;
+    $("#summaryRecipientFilter").on("change", function() {
+      summaryRecipientValue = this.value;
+      updateDashboard();
+    });
 
-  const recipients = Array.from(new Set(
-    tableData.map(r => (r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
-  )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+    $("#btnToggleSummaryValues").on("click", function () {
+      summaryValuesHidden = !summaryValuesHidden;
+      $(this).text(summaryValuesHidden ? "Mostrar valores" : "Ocultar valores");
+      updateDashboard();
+    });
 
-  const current = sel.val() || "";
-  sel.empty().append('<option value="">Recebedor: Todos</option>');
-  recipients.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
-  sel.val(current);
-}
+    const origUpdate = updateAutoCompleteOptions;
+    updateAutoCompleteOptions = function() {
+      origUpdate();
+      refreshSummaryYearOptions();
+      refreshSummaryRecipientOptions();
+    };
 
-$("#summaryYearFilter").off("change").on("change", function () {
-  summaryYearValue = this.value || "";
-  updateDashboard();
-});
-
-$("#summaryRecipientFilter").off("change").on("change", function () {
-  summaryRecipientValue = this.value || "";
-  updateDashboard();
-});
-
-$("#btnToggleSummaryValues").off("click").on("click", function () {
-  summaryValuesHidden = !summaryValuesHidden;
-  $(this).text(summaryValuesHidden ? "Mostrar valores" : "Ocultar valores");
-  updateDashboard();
-});
-
-// sempre que os dados mudarem, atualiza lista de anos e recebedores
-const _origUpdateAutoCompleteOptions2 = updateAutoCompleteOptions;
-updateAutoCompleteOptions = function () {
-  _origUpdateAutoCompleteOptions2();
-  try { refreshSummaryYearOptions(); } catch(e) {}
-  try { refreshSummaryRecipientOptions(); } catch(e) {}
-};
-
-refreshSummaryYearOptions();
-refreshSummaryRecipientOptions();
-
+    refreshSummaryYearOptions();
+    refreshSummaryRecipientOptions();
 
     $("#chkAutoSave").prop("checked", true);
-    document.getElementById("btnLoadSheets").disabled = true;
-    document.getElementById("btnSaveSheets").disabled = true;
-  
+    $("#btnLoadSheets, #btnSaveSheets").prop("disabled", true);
+
     maybeEnableSheetsButtons();
-});
+  });
 </script>
 </body>
 </html>
