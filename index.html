@@ -1417,6 +1417,24 @@
 
   $("#btnLoadSheets").on("click", loadFromSheets);
   $("#btnSaveSheets").on("click", saveAllToSheets);
+$("#btnMonthlyReport").on("click", function () {
+  // Popula os selects (caso queira recarregar toda vez que abrir)
+  const recipientSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
+  const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+
+  $("#recipientSelect")
+    .empty()
+    .append('<option value="Todos">Todos</option>')
+    .append([...recipientSet].sort().map(v => `<option value="${v}">${v}</option>`).join(""));
+
+  $("#cardSelect")
+    .empty()
+    .append('<option value="Todos">Todos</option>')
+    .append([...cardSet].sort().map(v => `<option value="${v}">${v}</option>`).join(""));
+
+  // Abre o modal
+  $("#monthlyReportModal").modal("show");
+});
 
   $(document).ready(function () {
     setSheetsStatus("Sheets: aguardando bibliotecas…", "warn");
