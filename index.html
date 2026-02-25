@@ -114,6 +114,9 @@
   <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width:160px;">
     <option value="">Ano: Todos</option>
   </select>
+  <select id="summaryRecipientFilter" class="form-control form-control-sm" style="max-width:220px;">
+    <option value="">Recebedor: Todos</option>
+  </select>
 
   <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm">
     Ocultar valores
@@ -142,6 +145,9 @@
             <div class="summary-value text-danger" id="totalAPagar">R$ 0,00</div>
           </div>
         </div>
+      </div>
+      <div id="overdueAlert" class="alert alert-danger text-center mt-3" style="display:none;">
+        <i class="bi bi-exclamation-triangle"></i> Atenção: Existem parcelas vencidas no período filtrado!
       </div>
 
       <div class="d-flex flex-wrap justify-content-between align-items-center mt-2" style="gap:10px;">
@@ -449,6 +455,7 @@
   let hasToken = false;
   
   let summaryYearValue = "";      // ex: "2026" ou "" (todos)
+  let summaryRecipientValue = ""; // ex: "Dayerre" ou "" (todos)
   let summaryValuesHidden = false; // privacidade
 
   let tableData = [];
@@ -594,8 +601,11 @@
 
   function updateDashboard() {
   let totalG = 0, pago = 0, apagar = 0;
+  let hasOverdue = false;
+  const now = new Date();
 
   const year = summaryYearValue ? Number(summaryYearValue) : null;
+  const recipient = summaryRecipientValue || null;
 
   tableData.forEach(r => {
     // usa DATA PAGTO para o resumo anual
@@ -603,12 +613,17 @@
     if (!dt) return;
 
     if (year !== null && dt.getFullYear() !== year) return;
+    if (recipient !== null && (r["VALORES A RECEBER"] || "").trim() !== recipient) return;
 
     const v = parseMoneyBR(r["VALOR PARCELA"]);
     totalG += v;
 
-    if ((r["STATUS"] || "").trim() === "Pago") pago += v;
-    else apagar += v;
+    const status = (r["STATUS"] || "").trim();
+    if (status === "Pago") pago += v;
+    else {
+      apagar += v;
+      if (dt < now) hasOverdue = true;
+    }
   });
 
   if (summaryValuesHidden) {
@@ -620,6 +635,8 @@
     $("#totalPago").text(formatMoneyBR(pago));
     $("#totalAPagar").text(formatMoneyBR(apagar));
   }
+
+  if (hasOverdue) $("#overdueAlert").show(); else $("#overdueAlert").hide();
 
   if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
 }
@@ -1115,7 +1132,7 @@
 
   function buildMonthlyReportTable() {
     if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
-      $("#monthlyReportTable").DataTable().destroy(true); /* remove wrapper/eventos */ /* [web:73] */
+      $("#monthlyReportTable").DataTable().destroy(true); /* remove wrapper/eventos */ /*  */
     }
 
     $("#monthlyReportTable").empty().append(`
@@ -1432,8 +1449,27 @@ function refreshSummaryYearOptions() {
   sel.val(current);
 }
 
+function refreshSummaryRecipientOptions() {
+  const sel = $("#summaryRecipientFilter");
+  if (sel.length === 0) return;
+
+  const recipients = Array.from(new Set(
+    tableData.map(r => (r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+  const current = sel.val() || "";
+  sel.empty().append('<option value="">Recebedor: Todos</option>');
+  recipients.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
+  sel.val(current);
+}
+
 $("#summaryYearFilter").off("change").on("change", function () {
   summaryYearValue = this.value || "";
+  updateDashboard();
+});
+
+$("#summaryRecipientFilter").off("change").on("change", function () {
+  summaryRecipientValue = this.value || "";
   updateDashboard();
 });
 
@@ -1443,14 +1479,16 @@ $("#btnToggleSummaryValues").off("click").on("click", function () {
   updateDashboard();
 });
 
-// sempre que os dados mudarem, atualiza lista de anos
+// sempre que os dados mudarem, atualiza lista de anos e recebedores
 const _origUpdateAutoCompleteOptions2 = updateAutoCompleteOptions;
 updateAutoCompleteOptions = function () {
   _origUpdateAutoCompleteOptions2();
   try { refreshSummaryYearOptions(); } catch(e) {}
+  try { refreshSummaryRecipientOptions(); } catch(e) {}
 };
 
 refreshSummaryYearOptions();
+refreshSummaryRecipientOptions();
 
 
     $("#chkAutoSave").prop("checked", true);
