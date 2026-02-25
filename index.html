@@ -157,6 +157,7 @@
           <label class="mb-0" style="user-select:none;">
             <input type="checkbox" id="chkAutoSave" checked />
             Salvar automático no Sheets
+         
           </label>
         </div>
       </div>
@@ -1307,23 +1308,31 @@
   };
 
   async function ensureAccessToken() {
-    if (hasToken) return true;
-    if (!tokenClient) return false;
+  if (hasToken) return true;
+  if (!tokenClient) return false;
 
-    return new Promise(resolve => {
-      tokenClient.callback = tokenResponse => {
-        if (tokenResponse.error) {
-          setSheetsStatus("Sheets: erro login", "err");
-          resolve(false);
-          return;
-        }
-        hasToken = true;
-        setSheetsStatus("Sheets: autenticado", "ok");
-        resolve(true);
-      };
-      tokenClient.requestAccessToken({ prompt: "" });
+  // Detecta se é mobile para forçar prompt
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  return new Promise((resolve) => {
+    tokenClient.callback = (tokenResponse) => {
+      if (tokenResponse.error) {
+        console.error("[Auth] Erro OAuth:", tokenResponse);
+        setSheetsStatus("Sheets: erro no login", "err");
+        resolve(false);
+        return;
+      }
+      hasToken = true;
+      setSheetsStatus("Sheets: autenticado", "ok");
+      resolve(true);
+    };
+
+    // No mobile, sempre mostra prompt para evitar falha silenciosa
+    tokenClient.requestAccessToken({ 
+      prompt: isMobile ? "consent" : ""  // força popup/login visível no mobile
     });
-  }
+  });
+}
 
   async function loadFromSheets() {
     if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
