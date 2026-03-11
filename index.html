@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
   <title>Controle Financeiro - Dayerre</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
@@ -20,71 +23,635 @@
   <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 
   <style>
+    :root {
+      --bg: #eef3f8;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fc;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #0d6efd;
+      --primary-dark: #0a58ca;
+      --success: #198754;
+      --danger: #dc3545;
+      --warning: #f59f00;
+      --info: #0dcaf0;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
-      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
-      background: #f0f2f5;
-      margin: 0; padding: 0;
+      background: linear-gradient(180deg, #edf4fb 0%, #f7f9fc 100%);
+      margin: 0;
+      padding: 0;
       min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
       font-size: 14px;
     }
-    .navbar {
-      background: linear-gradient(135deg, #007AFF, #005bb5);
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: 600;
+
+    body {
+      padding-bottom: 32px;
+    }
+
+    .app-header {
       position: sticky;
       top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      z-index: 1050;
+      background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 60%, #084298 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
     }
-    .card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      padding: 24px;
-      margin-bottom: 24px;
-      border: none;
+
+    .app-header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(6px);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      margin: 2px 0 0;
+      font-size: 12px;
+      opacity: 0.88;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .main-shell {
+      max-width: 1180px;
+      margin: 18px auto 0;
+      padding: 0 14px;
+    }
+
+    .panel-card {
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+
+    .panel-card-body {
+      padding: 18px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .section-subtitle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .summary-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .summary-toggle:focus {
+      outline: none;
+    }
+
+    .summary-toggle-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .summary-toggle-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e8f1ff;
+      color: var(--primary);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .summary-toggle-meta {
+      min-width: 0;
+    }
+
+    .summary-toggle-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .summary-toggle-text {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .summary-toggle-caret {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      background: #fff;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .summary-toggle[aria-expanded="true"] .summary-toggle-caret {
+      transform: rotate(180deg);
+    }
+
+    .summary-content {
+      border-top: 1px solid var(--line);
+      padding: 0 18px 18px;
+      display: none;
+    }
+
+    .summary-content.open {
+      display: block;
+    }
+
+    .summary-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 18px 0 16px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
     .summary-card {
-      text-align: center;
-      padding: 20px;
-      border-radius: 16px;
-      transition: transform 0.2s, box-shadow 0.2s;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 140px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .summary-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
-    .summary-icon { font-size: 2.5rem; margin-bottom: 12px; }
-    .summary-value { font-size: 2rem; font-weight: 700; }
 
-    .edit-cell { cursor: pointer; padding: 6px !important; font-size: 13px; }
-    .edit-cell:hover { background: #f0f8ff !important; }
-    #addRowForm { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 16px; display: none; }
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
 
-    table.dataTable td { padding: 6px !important; font-size: 13px; }
-    table.dataTable th { padding: 8px !important; font-size: 13px; text-align: center; }
-    .dataTables_scrollBody { overflow-x: auto !important; }
+    .summary-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
 
-    .money-cell { text-align: right; white-space: nowrap; font-weight: 500; }
+    .summary-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: #eef4ff;
+    }
 
-    #monthlyReportModal .modal-dialog { max-width: 95%; }
-    #monthlyReportTable td, #monthlyReportTable th { padding: 6px !important; font-size: 13px; }
-    .month-input { width: 180px; }
+    .summary-label {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
 
-    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-    .toolbar .btn { margin: 0 !important; }
-    .status-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; }
+    .summary-value {
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+    }
 
-    .limit-row-card { background:#f8f9fa; border-radius: 12px; padding: 12px; }
-    .limit-table td, .limit-table th { font-size: 13px; padding: 8px !important; }
+    .summary-card.total .summary-icon {
+      color: var(--primary);
+      background: #e9f2ff;
+    }
+
+    .summary-card.paid .summary-icon {
+      color: var(--success);
+      background: #eaf8f1;
+    }
+
+    .summary-card.opened .summary-icon {
+      color: var(--danger);
+      background: #fff0f2;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .summary-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .summary-hint {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .alert-custom {
+      margin-top: 16px;
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+
+    .launch-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .launch-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn-main-action {
+      min-height: 46px;
+      border-radius: 14px;
+      font-weight: 700;
+      padding: 0 16px;
+      border: 0;
+      box-shadow: 0 8px 18px rgba(13, 110, 253, 0.18);
+    }
+
+    .btn-soft {
+      min-height: 42px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .filter-panel {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .filter-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .filter-grid .btn,
+    .filter-grid .form-control {
+      min-height: 42px;
+      border-radius: 12px;
+    }
+
+    .form-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 14px;
+      display: none;
+    }
+
+    .form-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .form-control,
+    .custom-select {
+      min-height: 44px;
+      border-radius: 12px;
+      border-color: #dbe3ee;
+      box-shadow: none !important;
+    }
+
+    .form-control:focus,
+    .custom-select:focus {
+      border-color: #9ec5fe;
+    }
+
+    .table-wrap {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    table.dataTable {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+
+    table.dataTable thead th {
+      background: #f7f9fc;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      border-bottom: 1px solid var(--line) !important;
+      padding: 12px 8px !important;
+      white-space: nowrap;
+    }
+
+    table.dataTable td {
+      padding: 10px 8px !important;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .edit-cell {
+      cursor: pointer;
+    }
+
+    .edit-cell:hover {
+      background: #f4f8ff !important;
+    }
+
+    .money-cell {
+      text-align: right;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+      border: 1px solid #dbe3ee;
+      border-radius: 10px;
+      min-height: 36px;
+      padding: 4px 10px;
+      background: #fff;
+    }
+
+    .dataTables_scrollBody {
+      overflow-x: auto !important;
+    }
+
+    .limit-row-card {
+      background: #f8f9fa;
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+    }
+
+    .limit-table td,
+    .limit-table th {
+      font-size: 13px;
+      padding: 10px 8px !important;
+    }
+
     .tag {
-      display:inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px;
-      background:#eef2ff; color:#2b3a67; margin-right: 6px; margin-top: 4px;
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #2b3a67;
+      margin-right: 6px;
+      margin-top: 6px;
+    }
+
+    .modal-content {
+      border: 0;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .modal-header,
+    .modal-footer {
+      border-color: var(--line);
+    }
+
+    #monthlyReportModal .modal-dialog,
+    #cardLimitsModal .modal-dialog {
+      max-width: 95%;
+    }
+
+    #monthlyReportTable td,
+    #monthlyReportTable th {
+      padding: 8px !important;
+      font-size: 13px;
+    }
+
+    .month-input {
+      width: 100%;
+    }
+
+    .hidden-save {
+      display: none !important;
+    }
+
+    @media (max-width: 991.98px) {
+      .summary-grid,
+      .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .app-header-inner {
+        padding: 14px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-status {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .main-shell {
+        padding: 0 10px;
+        margin-top: 12px;
+      }
+
+      .panel-card-body,
+      .summary-content,
+      .summary-toggle {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .summary-grid,
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .launch-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .launch-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .launch-actions .btn {
+        width: 100%;
+      }
+
+      .btn-main-action {
+        width: 100%;
+      }
+
+      .summary-value {
+        font-size: 24px;
+      }
+
+      .section-title,
+      .summary-toggle-title {
+        font-size: 18px;
+      }
+
+      .brand-title {
+        font-size: 18px;
+      }
+
+      table.dataTable td,
+      table.dataTable th {
+        font-size: 12px !important;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .launch-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-icon,
+      .summary-toggle-icon {
+        width: 42px;
+        height: 42px;
+      }
+
+      .summary-card {
+        min-height: auto;
+      }
     }
 
     @media print {
-      body * { visibility: hidden !important; }
-      #monthlyReportModal, #monthlyReportModal * { visibility: visible !important; }
+      body * {
+        visibility: hidden !important;
+      }
+
+      #monthlyReportModal,
+      #monthlyReportModal * {
+        visibility: visible !important;
+      }
 
       #monthlyReportModal {
         position: absolute !important;
@@ -95,329 +662,289 @@
         overflow: visible !important;
       }
 
-      .modal-backdrop { display: none !important; }
-      .modal { overflow: visible !important; }
-      .modal-dialog { max-width: 100% !important; }
+      .modal-backdrop {
+        display: none !important;
+      }
 
-      .no-print { display: none !important; }
+      .modal {
+        overflow: visible !important;
+      }
+
+      .modal-dialog {
+        max-width: 100% !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="navbar">Controle Financeiro - Dayerre</div>
-
-  <div class="container pt-4">
-    <div class="card">
-      <h3 class="mb-4 text-center">Resumo Financeiro</h3>
-      <div class="d-flex flex-wrap justify-content-center align-items-center mb-3" style="gap:10px;">
-        <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width:160px;">
-          <option value="">Ano: Todos</option>
-        </select>
-        <select id="summaryRecipientFilter" class="form-control form-control-sm" style="max-width:220px;">
-          <option value="">Recebedor: Todos</option>
-        </select>
-        <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm">
-          Ocultar valores
-        </button>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="brand-wrap">
+        <div class="brand-icon">
+          <i class="bi bi-wallet2"></i>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Controle Financeiro</h1>
+          <p class="brand-subtitle">Lançamentos, filtros e resumo financeiro em um só lugar</p>
+        </div>
       </div>
 
-      <div class="row text-center">
-        <div class="col-md-4 mb-3">
-          <div class="summary-card bg-light shadow-sm">
-            <i class="bi bi-wallet2 summary-icon text-primary"></i>
-            <div>Total Geral</div>
+      <div class="header-status">
+        <span id="sheetsStatus" class="status-pill bg-light text-secondary">
+          <i class="bi bi-cloud"></i>
+          Sheets: aguardando…
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="panel-card">
+      <button
+        id="btnToggleSummaryPanel"
+        class="summary-toggle"
+        type="button"
+        aria-expanded="false"
+      >
+        <div class="summary-toggle-left">
+          <div class="summary-toggle-icon">
+            <i class="bi bi-bar-chart-line"></i>
+          </div>
+          <div class="summary-toggle-meta">
+            <h2 class="summary-toggle-title">Resumo Financeiro</h2>
+            <p class="summary-toggle-text">Toque para abrir os totais, filtros e alertas</p>
+          </div>
+        </div>
+        <div class="summary-toggle-caret">
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </button>
+
+      <div id="summaryContent" class="summary-content">
+        <div class="summary-toolbar">
+          <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width: 170px;">
+            <option value="">Ano: Todos</option>
+          </select>
+
+          <select id="summaryRecipientFilter" class="form-control form-control-sm" style="max-width: 220px;">
+            <option value="">Recebedor: Todos</option>
+          </select>
+
+          <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm btn-soft">
+            Ocultar valores
+          </button>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card total">
+            <div class="summary-card-top">
+              <p class="summary-label">Total Geral</p>
+              <div class="summary-icon">
+                <i class="bi bi-wallet2"></i>
+              </div>
+            </div>
             <div class="summary-value text-primary" id="totalGeral">R$ 0,00</div>
           </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="summary-card bg-light shadow-sm">
-            <i class="bi bi-check-circle summary-icon text-success"></i>
-            <div>Total Pago</div>
+
+          <div class="summary-card paid">
+            <div class="summary-card-top">
+              <p class="summary-label">Total Pago</p>
+              <div class="summary-icon">
+                <i class="bi bi-check-circle"></i>
+              </div>
+            </div>
             <div class="summary-value text-success" id="totalPago">R$ 0,00</div>
           </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="summary-card bg-light shadow-sm">
-            <i class="bi bi-exclamation-triangle summary-icon text-danger"></i>
-            <div>Total a Pagar</div>
+
+          <div class="summary-card opened">
+            <div class="summary-card-top">
+              <p class="summary-label">Total a Pagar</p>
+              <div class="summary-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+              </div>
+            </div>
             <div class="summary-value text-danger" id="totalAPagar">R$ 0,00</div>
           </div>
         </div>
-      </div>
 
-      <div id="overdueAlert" class="alert alert-danger text-center mt-3" style="display:none;">
-        <i class="bi bi-exclamation-triangle"></i> Atenção: Existem parcelas vencidas no período filtrado!
-      </div>
-
-      <div class="d-flex flex-wrap justify-content-between align-items-center mt-2" style="gap:10px;">
-        <div>
-          <span id="sheetsStatus" class="status-pill bg-light text-secondary">Sheets: aguardando…</span>
+        <div id="overdueAlert" class="alert alert-danger alert-custom text-center" style="display:none;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Atenção: existem parcelas vencidas no período filtrado.
         </div>
-        <div>
-          <label class="mb-0" style="user-select:none;">
-            <input type="checkbox" id="chkAutoSave" checked />
-            Salvar automático no Sheets
-         
-          </label>
-        </div>
-      </div>
-    </div>
 
-    <div class="card">
-      <h3>Lançamentos (Mais recente primeiro)</h3>
-
-      <div class="toolbar">
-        <button id="btnAddRow" class="btn btn-primary" type="button">+ Nova Parcela</button>
-        <button id="btnExcluirRegistro" class="btn btn-danger" type="button">Excluir Registros</button>
-        <button id="btnMarcarPago" class="btn btn-success" type="button">Marcar como Pago</button>
-        <button id="btnUpdateTotals" class="btn btn-secondary" type="button">Atualizar Totais</button>
-        <button id="btnMonthlyReport" class="btn btn-info" type="button">Relatórios Mensais</button>
-
-        <button id="btnCardLimits" class="btn btn-outline-dark" type="button">
-          <i class="bi bi-credit-card"></i> Limites de Cartão
-        </button>
-
-        <select id="launchCardFilter" class="form-control form-control-sm" style="max-width:220px">
-          <option value="">Cartão: Todos</option>
-        </select>
-
-        <input type="month" id="launchPayMonthFilter" class="form-control form-control-sm" style="max-width:180px">
-
-        <button id="btnClearLaunchFilters" type="button" class="btn btn-outline-secondary btn-sm">
-          Limpar filtros
-        </button>
-
-        <button id="btnLoadSheets" class="btn btn-warning" type="button" disabled>Carregar do Sheets</button>
-        <button id="btnSaveSheets" class="btn btn-warning" type="button" disabled>Salvar no Sheets</button>
-
-        <input type="file" id="fileInput" accept=".csv" style="display:none;" />
-      </div>
-
-      <div id="addRowForm" style="display:none;">
-        <div class="card bg-light mb-4">
-          <div class="card-body">
-            <h5 class="card-title">Adicionar Nova Parcela</h5>
-            <form id="newRowForm">
-              <div class="form-row">
-                <div class="col-md-3 mb-2">
-                  <input type="text" class="form-control" id="newDataCompra" placeholder="DD/MM/AAAA" required />
-                </div>
-                <div class="col-md-3 mb-2">
-                  <input type="text" class="form-control" id="newReceber" list="receberOptions" placeholder="Quem recebe" required />
-                  <datalist id="receberOptions"></datalist>
-                </div>
-                <div class="col-md-4 mb-2">
-                  <input type="text" class="form-control" id="newDescricao" placeholder="Descrição" required />
-                </div>
-                <div class="col-md-2 mb-2">
-                  <input type="text" class="form-control" id="newLoja" list="lojaOptions" placeholder="Loja" />
-                  <datalist id="lojaOptions"></datalist>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="col-md-3 mb-2">
-                  <input type="text" class="form-control" id="newValorTotal" placeholder="R$ Valor Total" required />
-                </div>
-                <div class="col-md-3 mb-2">
-                  <input type="text" class="form-control" id="newCartao" list="cartaoOptions" placeholder="Cartão (ex.: BTG, SICREDI, XP...)" required />
-                  <datalist id="cartaoOptions"></datalist>
-                </div>
-                <div class="col-md-2 mb-2">
-                  <input type="number" class="form-control" id="newTotalParcelas" min="1" value="1" placeholder="Total Parc." required />
-                </div>
-                <div class="col-md-2 mb-2">
-                  <input type="text" class="form-control" id="newValorParcela" placeholder="R$ Parcela" readonly />
-                </div>
-                <div class="col-md-4 mb-2">
-                  <input type="text" class="form-control" id="newDataPagamento" placeholder="DD/MM/AAAA" required />
-                </div>
-                <div class="col-md-3 mb-2">
-                  <select class="form-control" id="newStatus" required>
-                    <option value="Pago">Pago</option>
-                    <option value="Em aberto" selected>Em aberto</option>
-                  </select>
-                </div>
-                <div class="col-md-2 mb-2">
-                  <button type="submit" class="btn btn-success btn-block">Adicionar</button>
-                </div>
-                <div class="col-md-2 mb-2">
-                  <button type="button" id="cancelAdd" class="btn btn-secondary btn-block">Cancelar</button>
-                </div>
-              </div>
-            </form>
+        <div class="summary-footer">
+          <div class="summary-hint">
+            <i class="bi bi-arrow-repeat"></i>
+            Salvamento automático ativo após alterações
           </div>
         </div>
       </div>
+    </section>
 
-      <table id="dataTable" class="display compact" style="width:100%;">
-        <thead>
-          <tr>
-            <th><input type="checkbox" id="selectAll" /></th>
-            <th>DATA COMPRA</th>
-            <th>VALORES A RECEBER</th>
-            <th>DESCRIÇÃO</th>
-            <th>LOJA</th>
-            <th>VALOR TOTAL</th>
-            <th>CARTÃO</th>
-            <th>TOTAL PARCELAS</th>
-            <th>PARCELA</th>
-            <th>VALOR PARCELA</th>
-            <th>DATA PAGTO</th>
-            <th>STATUS</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+    <section class="panel-card">
+      <div class="panel-card-body">
+        <div class="launch-header">
+          <div>
+            <h2 class="section-title">Lançamentos</h2>
+            <p class="section-subtitle">Visual reorganizado para facilitar o uso no celular</p>
+          </div>
 
-  <!-- Modal Limites de Cartão -->
-  <div class="modal fade" id="cardLimitsModal" tabindex="-1" role="dialog" aria-labelledby="cardLimitsLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="cardLimitsLabel">Limites de Cartão</h5>
-          <button id="btnLoadLimits" class="btn btn-warning btn-sm" type="button">Carregar do Sheets</button>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true">&times;</span>
+          <button id="btnAddRow" class="btn btn-primary btn-main-action" type="button">
+            <i class="bi bi-plus-lg"></i>
+            Nova parcela
           </button>
         </div>
 
-        <div class="modal-body">
-          <div class="limit-row-card mb-3">
+        <div class="launch-actions">
+          <button id="btnMarcarPago" class="btn btn-success btn-soft" type="button">
+            <i class="bi bi-check2-circle"></i>
+            Marcar como pago
+          </button>
+
+          <button id="btnExcluirRegistro" class="btn btn-outline-danger btn-soft" type="button">
+            <i class="bi bi-trash"></i>
+            Excluir registros
+          </button>
+
+          <button id="btnMonthlyReport" class="btn btn-outline-info btn-soft" type="button">
+            <i class="bi bi-graph-up"></i>
+            Relatórios mensais
+          </button>
+
+          <button id="btnCardLimits" class="btn btn-outline-dark btn-soft" type="button">
+            <i class="bi bi-credit-card"></i>
+            Limites de cartão
+          </button>
+
+          <button id="btnUpdateTotals" class="btn btn-outline-secondary btn-soft" type="button">
+            <i class="bi bi-arrow-clockwise"></i>
+            Atualizar totais
+          </button>
+
+          <button id="btnLoadSheets" class="btn btn-warning btn-soft" type="button" disabled>
+            <i class="bi bi-cloud-download"></i>
+            Carregar do Sheets
+          </button>
+
+          <button id="btnSaveSheets" class="btn btn-warning btn-soft hidden-save" type="button" disabled>
+            Salvar no Sheets
+          </button>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-panel-title">
+            <i class="bi bi-funnel"></i>
+            Filtros da lista principal
+          </div>
+
+          <div class="filter-grid">
+            <select id="launchRecipientFilter" class="form-control form-control-sm">
+              <option value="">Recebedor: Todos</option>
+            </select>
+
+            <select id="launchCardFilter" class="form-control form-control-sm">
+              <option value="">Cartão: Todos</option>
+            </select>
+
+            <input type="month" id="launchPayMonthFilter" class="form-control form-control-sm" />
+
+            <button id="btnClearLaunchFilters" type="button" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-eraser"></i>
+              Limpar filtros
+            </button>
+          </div>
+        </div>
+
+        <div id="addRowForm" class="form-card">
+          <div class="form-card-title">
+            <i class="bi bi-journal-plus"></i>
+            Adicionar nova parcela
+          </div>
+
+          <form id="newRowForm">
             <div class="form-row">
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="newDataCompra" placeholder="Data da compra - DD/MM/AAAA" required />
+              </div>
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="newReceber" list="receberOptions" placeholder="Quem recebe" required />
+                <datalist id="receberOptions"></datalist>
+              </div>
               <div class="col-md-4 mb-2">
-                <label>Escolher (dos lançamentos)</label>
-                <select class="form-control" id="limitLaunchCard">
-                  <option value="">(Selecionar...)</option>
+                <input type="text" class="form-control" id="newDescricao" placeholder="Descrição" required />
+              </div>
+              <div class="col-md-2 mb-2">
+                <input type="text" class="form-control" id="newLoja" list="lojaOptions" placeholder="Loja" />
+                <datalist id="lojaOptions"></datalist>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="newValorTotal" placeholder="R$ Valor total" required />
+              </div>
+              <div class="col-md-3 mb-2">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="newCartao"
+                  list="cartaoOptions"
+                  placeholder="Cartão (ex.: BTG, SICREDI, XP)"
+                  required
+                />
+                <datalist id="cartaoOptions"></datalist>
+              </div>
+              <div class="col-md-2 mb-2">
+                <input type="number" class="form-control" id="newTotalParcelas" min="1" value="1" placeholder="Total parcelas" required />
+              </div>
+              <div class="col-md-2 mb-2">
+                <input type="text" class="form-control" id="newValorParcela" placeholder="R$ Parcela" readonly />
+              </div>
+              <div class="col-md-2 mb-2">
+                <select class="form-control" id="newStatus" required>
+                  <option value="Pago">Pago</option>
+                  <option value="Em aberto" selected>Em aberto</option>
                 </select>
-                <small class="text-muted">Escolha um texto que aparece no campo CARTÃO dos lançamentos (ex.: BTG).</small>
-              </div>
-
-              <div class="col-md-4 mb-2">
-                <label>Banco</label>
-                <input type="text" class="form-control" id="limitBank" placeholder="Ex.: BTG Pactual" />
-              </div>
-
-              <div class="col-md-4 mb-2">
-                <label>Bandeira</label>
-                <input type="text" class="form-control" id="limitBrand" placeholder="Ex.: Mastercard" />
               </div>
             </div>
 
             <div class="form-row">
               <div class="col-md-4 mb-2">
-                <label>Categoria</label>
-                <input type="text" class="form-control" id="limitCategory" placeholder="Ex.: BLACK, GOLD, PLATINIUM" />
+                <input type="text" class="form-control" id="newDataPagamento" placeholder="Primeiro pagamento - DD/MM/AAAA" required />
               </div>
-
               <div class="col-md-4 mb-2">
-                <label>Limite total</label>
-                <input type="text" class="form-control" id="limitTotal" placeholder="Ex.: 4500" />
+                <button type="submit" class="btn btn-success btn-block btn-soft">
+                  <i class="bi bi-plus-circle"></i>
+                  Adicionar
+                </button>
               </div>
-
-              <div class="col-md-4 mb-2 d-flex align-items-end">
-                <div class="w-100">
-                  <button class="btn btn-dark btn-block" id="btnSaveLimit" type="button">Salvar / Atualizar</button>
-                  <button class="btn btn-outline-secondary btn-block mt-2" id="btnClearLimit" type="button">Limpar</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-row mt-2">
-              <div class="col-md-12">
-                <label>Textos do campo CARTÃO que pertencem a este cartão (aliases)</label>
-                <input type="text" class="form-control" id="limitAliases" placeholder="Ex.: BTG; BTG PACTUAL (separar por ; )" />
-                <small class="text-muted">O sistema soma “Em aberto” considerando todos esses textos como o mesmo cartão.</small>
+              <div class="col-md-4 mb-2">
+                <button type="button" id="cancelAdd" class="btn btn-outline-secondary btn-block btn-soft">
+                  <i class="bi bi-x-circle"></i>
+                  Cancelar
+                </button>
               </div>
             </div>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mb-2" style="gap:10px;">
-            <div class="text-muted">
-              Você pode “Ocultar” itens como <strong>Débito</strong> e <strong>Depósito</strong> para não aparecerem aqui, sem alterar lançamentos.
-            </div>
-            <div>
-              <button class="btn btn-outline-secondary btn-sm" id="btnShowHidden" type="button">Mostrar ocultos</button>
-            </div>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table table-sm table-striped limit-table">
-              <thead>
-                <tr>
-                  <th>Cartão</th>
-                  <th class="text-right">Limite total</th>
-                  <th class="text-right">Em aberto</th>
-                  <th class="text-right">Limite livre</th>
-                  <th class="text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody id="limitsTbody"></tbody>
-            </table>
-          </div>
+          </form>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Relatórios Mensais -->
-  <div class="modal fade" id="monthlyReportModal" tabindex="-1" role="dialog" aria-labelledby="monthlyReportLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="monthlyReportLabel">Relatórios Mensais Financeiros</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <div class="row no-print">
-            <div class="col-md-4 mb-3">
-              <label for="monthInput">Mês/Ano</label>
-              <input type="month" id="monthInput" class="form-control month-input" />
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="recipientSelect">Quem Recebe</label>
-              <select id="recipientSelect" class="form-control">
-                <option value="Todos">Todos</option>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="cardSelect">Cartão</label>
-              <select id="cardSelect" class="form-control">
-                <option value="Todos">Todos</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="card mt-3">
-            <div class="card-body">
-              <h5>Resumo do Período Filtrado</h5>
-              <div class="row text-center">
-                <div class="col-md-4">Total Geral <strong id="reportTotalGeral">R$ 0,00</strong></div>
-                <div class="col-md-4">Total Pago <strong id="reportTotalPago">R$ 0,00</strong></div>
-                <div class="col-md-4">Total a Pagar <strong id="reportTotalAPagar">R$ 0,00</strong></div>
-              </div>
-            </div>
-          </div>
-
-          <table id="monthlyReportTable" class="display compact mt-4" style="width:100%;">
+        <div class="table-wrap">
+          <table id="dataTable" class="display compact" style="width:100%;">
             <thead>
               <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
                 <th>DATA COMPRA</th>
                 <th>VALORES A RECEBER</th>
                 <th>DESCRIÇÃO</th>
                 <th>LOJA</th>
                 <th>VALOR TOTAL</th>
                 <th>CARTÃO</th>
-                <th>PARCELA TOTAL</th>
+                <th>TOTAL PARCELAS</th>
+                <th>PARCELA</th>
                 <th>VALOR PARCELA</th>
                 <th>DATA PAGTO</th>
                 <th>STATUS</th>
@@ -426,14 +953,177 @@
             <tbody></tbody>
           </table>
         </div>
+      </div>
+    </section>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-primary" id="btnPrintReport">Imprimir</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+    <div class="hidden-save">
+      <input type="checkbox" id="chkAutoSave" checked />
+      <input type="file" id="fileInput" accept=".csv" style="display:none;" />
+    </div>
+
+    <!-- Modal Limites de Cartão -->
+    <div class="modal fade" id="cardLimitsModal" tabindex="-1" role="dialog" aria-labelledby="cardLimitsLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cardLimitsLabel">Limites de Cartão</h5>
+            <button id="btnLoadLimits" class="btn btn-warning btn-sm" type="button">Carregar do Sheets</button>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="limit-row-card mb-3">
+              <div class="form-row">
+                <div class="col-md-4 mb-2">
+                  <label>Escolher (dos lançamentos)</label>
+                  <select class="form-control" id="limitLaunchCard">
+                    <option value="">(Selecionar...)</option>
+                  </select>
+                  <small class="text-muted">Escolha um texto que aparece no campo CARTÃO dos lançamentos (ex.: BTG).</small>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                  <label>Banco</label>
+                  <input type="text" class="form-control" id="limitBank" placeholder="Ex.: BTG Pactual" />
+                </div>
+
+                <div class="col-md-4 mb-2">
+                  <label>Bandeira</label>
+                  <input type="text" class="form-control" id="limitBrand" placeholder="Ex.: Mastercard" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="col-md-4 mb-2">
+                  <label>Categoria</label>
+                  <input type="text" class="form-control" id="limitCategory" placeholder="Ex.: BLACK, GOLD, PLATINIUM" />
+                </div>
+
+                <div class="col-md-4 mb-2">
+                  <label>Limite total</label>
+                  <input type="text" class="form-control" id="limitTotal" placeholder="Ex.: 4500" />
+                </div>
+
+                <div class="col-md-4 mb-2 d-flex align-items-end">
+                  <div class="w-100">
+                    <button class="btn btn-dark btn-block" id="btnSaveLimit" type="button">Salvar / Atualizar</button>
+                    <button class="btn btn-outline-secondary btn-block mt-2" id="btnClearLimit" type="button">Limpar</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row mt-2">
+                <div class="col-md-12">
+                  <label>Textos do campo CARTÃO que pertencem a este cartão (aliases)</label>
+                  <input type="text" class="form-control" id="limitAliases" placeholder="Ex.: BTG; BTG PACTUAL (separar por ; )" />
+                  <small class="text-muted">O sistema soma “Em aberto” considerando todos esses textos como o mesmo cartão.</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2" style="gap:10px;">
+              <div class="text-muted">
+                Você pode “Ocultar” itens como <strong>Débito</strong> e <strong>Depósito</strong> para não aparecerem aqui, sem alterar lançamentos.
+              </div>
+              <div>
+                <button class="btn btn-outline-secondary btn-sm" id="btnShowHidden" type="button">Mostrar ocultos</button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-striped limit-table">
+                <thead>
+                  <tr>
+                    <th>Cartão</th>
+                    <th class="text-right">Limite total</th>
+                    <th class="text-right">Em aberto</th>
+                    <th class="text-right">Limite livre</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="limitsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- Modal Relatórios Mensais -->
+    <div class="modal fade" id="monthlyReportModal" tabindex="-1" role="dialog" aria-labelledby="monthlyReportLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="monthlyReportLabel">Relatórios Mensais Financeiros</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <div class="row no-print">
+              <div class="col-md-4 mb-3">
+                <label for="monthInput">Mês/Ano</label>
+                <input type="month" id="monthInput" class="form-control month-input" />
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="recipientSelect">Quem Recebe</label>
+                <select id="recipientSelect" class="form-control">
+                  <option value="Todos">Todos</option>
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="cardSelect">Cartão</label>
+                <select id="cardSelect" class="form-control">
+                  <option value="Todos">Todos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="panel-card mt-3" style="box-shadow:none;border:1px solid #e5e7eb;">
+              <div class="panel-card-body">
+                <h5 class="mb-3">Resumo do Período Filtrado</h5>
+                <div class="row text-center">
+                  <div class="col-md-4 mb-2">Total Geral <strong id="reportTotalGeral">R$ 0,00</strong></div>
+                  <div class="col-md-4 mb-2">Total Pago <strong id="reportTotalPago">R$ 0,00</strong></div>
+                  <div class="col-md-4 mb-2">Total a Pagar <strong id="reportTotalAPagar">R$ 0,00</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <table id="monthlyReportTable" class="display compact mt-4" style="width:100%;">
+              <thead>
+                <tr>
+                  <th>DATA COMPRA</th>
+                  <th>VALORES A RECEBER</th>
+                  <th>DESCRIÇÃO</th>
+                  <th>LOJA</th>
+                  <th>VALOR TOTAL</th>
+                  <th>CARTÃO</th>
+                  <th>PARCELA TOTAL</th>
+                  <th>VALOR PARCELA</th>
+                  <th>DATA PAGTO</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-primary" id="btnPrintReport">Imprimir</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
 <script>
   const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
@@ -442,7 +1132,7 @@
   const CARD_LIMITS_SHEET_NAME = "CardLimits";
   const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
 
-  const HEADERS = ["DATA COMPRA","VALORES A RECEBER","DESCRIÇÃO","LOJA","VALOR TOTAL","CARTÃO","TOTAL PARCELAS","PARCELA","VALOR PARCELA","DATA PAGTO","STATUS"];
+  const HEADERS = ["DATA COMPRA", "VALORES A RECEBER", "DESCRIÇÃO", "LOJA", "VALOR TOTAL", "CARTÃO", "TOTAL PARCELAS", "PARCELA", "VALOR PARCELA", "DATA PAGTO", "STATUS"];
   const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
   const WRITE_START_A1 = `${SHEET_NAME}!A1`;
   const CARD_LIMITS_RANGE = `${CARD_LIMITS_SHEET_NAME}!A:H`;
@@ -456,10 +1146,13 @@
   let gapiInited = false;
   let gisInited = false;
   let hasToken = false;
-  
+  let isSaving = false;
+
   let summaryYearValue = "";
   let summaryRecipientValue = "";
   let summaryValuesHidden = false;
+  let launchPayMonthValue = "";
+  let launchRecipientValue = "";
 
   let tableData = [];
   let dataTable = null;
@@ -467,7 +1160,10 @@
 
   function formatMoneyBR(num) {
     if (isNaN(num) || num === null) return "R$ 0,00";
-    return "R$ " + Number(num).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return "R$ " + Number(num).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 
   function parseMoneyBR(str) {
@@ -499,12 +1195,13 @@
 
   function setSheetsStatus(text, kind) {
     const el = document.getElementById("sheetsStatus");
-    el.textContent = text;
-    el.classList.remove("bg-light","bg-success","bg-warning","bg-danger","text-secondary","text-dark","text-white");
-    if (kind === "ok") el.classList.add("bg-success","text-white");
-    else if (kind === "warn") el.classList.add("bg-warning","text-dark");
-    else if (kind === "err") el.classList.add("bg-danger","text-white");
-    else el.classList.add("bg-light","text-secondary");
+    if (!el) return;
+    el.innerHTML = `<i class="bi bi-cloud-check"></i> ${text}`;
+    el.classList.remove("bg-light", "bg-success", "bg-warning", "bg-danger", "text-secondary", "text-dark", "text-white");
+    if (kind === "ok") el.classList.add("bg-success", "text-white");
+    else if (kind === "warn") el.classList.add("bg-warning", "text-dark");
+    else if (kind === "err") el.classList.add("bg-danger", "text-white");
+    else el.classList.add("bg-light", "text-secondary");
   }
 
   function normalizeRow(r) {
@@ -523,30 +1220,61 @@
     };
   }
 
-  let launchPayMonthValue = "";
+  function toggleSummaryPanel(forceOpen = null) {
+    const btn = $("#btnToggleSummaryPanel");
+    const content = $("#summaryContent");
+    const shouldOpen = forceOpen !== null ? forceOpen : !content.hasClass("open");
+    content.toggleClass("open", shouldOpen);
+    btn.attr("aria-expanded", shouldOpen ? "true" : "false");
+  }
 
-  $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+  $.fn.dataTable.ext.search.push(function (settings, data) {
     if (!dataTable || settings.nTable !== $("#dataTable")[0]) return true;
-    if (!launchPayMonthValue) return true;
+
+    const recipient = (data[2] || "").trim();
     const dateStr = data[10];
     const dt = parseDateBR(dateStr);
-    if (!dt) return false;
-    const parts = String(launchPayMonthValue).split("-");
-    if (parts.length !== 2) return true;
-    const y = Number(parts[0]);
-    const mo = Number(parts[1]);
-    return dt.getFullYear() === y && (dt.getMonth() + 1) === mo;
+
+    if (launchRecipientValue && recipient !== launchRecipientValue) return false;
+
+    if (launchPayMonthValue) {
+      if (!dt) return false;
+      const parts = String(launchPayMonthValue).split("-");
+      if (parts.length === 2) {
+        const y = Number(parts[0]);
+        const mo = Number(parts[1]);
+        if (dt.getFullYear() !== y || (dt.getMonth() + 1) !== mo) return false;
+      }
+    }
+
+    return true;
   });
 
   function refreshLaunchCardFilterOptions() {
     const sel = $("#launchCardFilter");
     if (sel.length === 0) return;
+
     const cards = Array.from(new Set(
       tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)
     )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
     const current = sel.val() || "";
     sel.empty().append('<option value="">Cartão: Todos</option>');
     cards.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
+    sel.val(current);
+  }
+
+  function refreshLaunchRecipientFilterOptions() {
+    const sel = $("#launchRecipientFilter");
+    if (sel.length === 0) return;
+
+    const recipients = Array.from(new Set(
+      tableData.map(r => (r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const current = sel.val() || "";
+    sel.empty().append('<option value="">Recebedor: Todos</option>');
+    recipients.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
     sel.val(current);
   }
 
@@ -557,6 +1285,12 @@
       dataTable.column(6).search(v).draw();
     });
 
+    $("#launchRecipientFilter").off("change").on("change", function () {
+      launchRecipientValue = (this.value || "").trim();
+      if (!dataTable) return;
+      dataTable.draw();
+    });
+
     $("#launchPayMonthFilter").off("change").on("change", function () {
       launchPayMonthValue = this.value || "";
       if (!dataTable) return;
@@ -565,8 +1299,10 @@
 
     $("#btnClearLaunchFilters").off("click").on("click", function () {
       $("#launchCardFilter").val("");
+      $("#launchRecipientFilter").val("");
       $("#launchPayMonthFilter").val("");
       launchPayMonthValue = "";
+      launchRecipientValue = "";
       if (!dataTable) return;
       dataTable.column(6).search("").draw();
     });
@@ -585,10 +1321,13 @@
     $("#cartaoOptions").html(Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join(""));
 
     refreshLaunchCardFilterOptions();
+    refreshLaunchRecipientFilterOptions();
   }
 
   function updateDashboard() {
-    let totalG = 0, pago = 0, apagar = 0;
+    let totalG = 0;
+    let pago = 0;
+    let apagar = 0;
     let hasOverdue = false;
     const now = new Date();
 
@@ -605,17 +1344,16 @@
       totalG += v;
 
       const status = (r["STATUS"] || "").trim();
-      if (status === "Pago") pago += v;
-      else {
+      if (status === "Pago") {
+        pago += v;
+      } else {
         apagar += v;
         if (dt < now) hasOverdue = true;
       }
     });
 
     if (summaryValuesHidden) {
-      $("#totalGeral").text("••••");
-      $("#totalPago").text("••••");
-      $("#totalAPagar").text("••••");
+      $("#totalGeral, #totalPago, #totalAPagar").text("••••");
     } else {
       $("#totalGeral").text(formatMoneyBR(totalG));
       $("#totalPago").text(formatMoneyBR(pago));
@@ -659,8 +1397,9 @@
       const cell = dataTable.cell(this);
       const field = dataTable.column(cell.index().column).header().textContent.trim();
       const oldVal = cell.data();
+      const safeValue = String(oldVal ?? "").replace(/"/g, "&quot;");
 
-      const input = $(`<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}">`);
+      const input = $(`<input type="text" class="form-control form-control-sm" value="${safeValue}">`);
       $(this).html(input);
       input.focus().select();
 
@@ -678,11 +1417,12 @@
 
         updateDashboard();
         updateAutoCompleteOptions();
-
-        if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
+        await triggerAutoSave();
       });
 
-      input.on("keypress", function (e) { if (e.which === 13) input.blur(); });
+      input.on("keypress", function (e) {
+        if (e.which === 13) input.blur();
+      });
     });
 
     $("#selectAll").off("change").on("change", function () {
@@ -690,9 +1430,11 @@
     });
   }
 
-  // ──────────────────────────────────────────────────────────────────────────────
-  // Limites de Cartão - GOOGLE SHEETS
-  // ──────────────────────────────────────────────────────────────────────────────
+  async function triggerAutoSave() {
+    if (!$("#chkAutoSave").prop("checked")) return;
+    if (isSaving) return;
+    await saveAllToSheets(true);
+  }
 
   async function loadCardLimits() {
     const ok = await ensureAccessToken();
@@ -715,7 +1457,6 @@
             hidden: row[6] === "TRUE",
             placeholder: row[7] === "TRUE"
           }));
-          console.log(`[CardLimits] Carregados ${cardLimits.length} itens do Sheets`);
           return;
         }
       } catch (err) {
@@ -727,7 +1468,6 @@
       const raw = localStorage.getItem(LS_LIMITS_KEY);
       cardLimits = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(cardLimits)) cardLimits = [];
-      console.log("[CardLimits] Carregado do localStorage (fallback)");
     } catch (e) {
       cardLimits = [];
     }
@@ -737,7 +1477,6 @@
     const ok = await ensureAccessToken();
     if (!ok) {
       localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
-      console.warn("[CardLimits] Não autenticado → salvo apenas localmente");
       return;
     }
 
@@ -768,7 +1507,6 @@
         resource: { values }
       });
 
-      console.log("[CardLimits] Salvo no Sheets com sucesso");
       localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
     } catch (err) {
       console.error("[CardLimits] Erro ao salvar no Sheets:", err);
@@ -781,10 +1519,10 @@
       String(s || "").split(";").map(x => x.trim()).filter(Boolean)
     ));
   }
-
   function getUniqueLaunchCards() {
-    return Array.from(new Set(tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)))
-      .sort((a,b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
+    return Array.from(new Set(
+      tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
   }
 
   function sumOpenByLaunchCardText() {
@@ -825,6 +1563,7 @@
 
   function ensurePlaceholderItemsForLaunchCards() {
     const launchCards = getUniqueLaunchCards();
+
     launchCards.forEach(txt => {
       const exists = cardLimits.some(it => (it.aliases || []).includes(txt));
       if (!exists) {
@@ -833,6 +1572,7 @@
           (it.aliases || []).length === 1 &&
           it.aliases[0] === txt
         );
+
         if (!already) {
           cardLimits.push({
             id: "ph_" + txt,
@@ -852,13 +1592,14 @@
   function renderCardLimitsTable() {
     fillLaunchCardSelect();
     ensurePlaceholderItemsForLaunchCards();
+
     const openMap = sumOpenByLaunchCardText();
     const tbody = $("#limitsTbody");
     tbody.empty();
 
     const items = [...cardLimits]
       .filter(it => showHidden ? true : !it.hidden)
-      .sort((a,b) => {
+      .sort((a, b) => {
         const aName = (a.aliases && a.aliases[0]) ? a.aliases[0] : "";
         const bName = (b.aliases && b.aliases[0]) ? b.aliases[0] : "";
         return aName.localeCompare(bName, "pt-BR", { sensitivity: "base" });
@@ -877,13 +1618,12 @@
       const hasLimit = total !== null;
 
       const freeClass = !hasLimit ? "text-muted" :
-                        free < 0 ? "text-danger" :
-                        free < total * 0.15 ? "text-warning" : "text-success";
+        free < 0 ? "text-danger" :
+        free < total * 0.15 ? "text-warning" : "text-success";
 
       const categoryTag = item.category ? `<span class="tag">${String(item.category).toUpperCase()}</span>` : "";
       const hiddenTag = item.hidden ? `<span class="badge badge-secondary ml-2">Oculto</span>` : "";
       const noLimitTag = !hasLimit ? `<span class="badge badge-warning ml-2">Sem limite</span>` : "";
-
       const aliasesHtml = (item.aliases || []).slice(0, 6).map(a => `<span class="tag">${a}</span>`).join("");
 
       tbody.append(`
@@ -928,18 +1668,24 @@
     const total = totalRaw ? parseMoneyBR(totalRaw) : null;
     const aliases = parseAliases($("#limitAliases").val());
 
-    if (aliases.length === 0) { alert("Informe pelo menos 1 alias."); return; }
-    if (total !== null && total <= 0) { alert("Limite total inválido."); return; }
+    if (aliases.length === 0) {
+      alert("Informe pelo menos 1 alias.");
+      return;
+    }
+
+    if (total !== null && total <= 0) {
+      alert("Limite total inválido.");
+      return;
+    }
 
     const aliasConflicts = [];
     aliases.forEach(a => {
       cardLimits.forEach(it => {
         if (it.id === editId) return;
-        if (it.total != null && (it.aliases || []).includes(a)) {
-          aliasConflicts.push(a);
-        }
+        if (it.total != null && (it.aliases || []).includes(a)) aliasConflicts.push(a);
       });
     });
+
     if (aliasConflicts.length > 0) {
       alert("Alias já usado em outro cartão com limite: " + aliasConflicts[0]);
       return;
@@ -948,13 +1694,27 @@
     if (editId) {
       const idx = cardLimits.findIndex(x => x.id === editId);
       if (idx >= 0) {
-        cardLimits[idx] = { ...cardLimits[idx], bank, brand, category, total, aliases, placeholder: false, hidden: false };
+        cardLimits[idx] = {
+          ...cardLimits[idx],
+          bank,
+          brand,
+          category,
+          total,
+          aliases,
+          placeholder: false,
+          hidden: false
+        };
       }
     } else {
       cardLimits.push({
         id: String(Date.now()),
-        bank, brand, category, total, aliases,
-        hidden: false, placeholder: false
+        bank,
+        brand,
+        category,
+        total,
+        aliases,
+        hidden: false,
+        placeholder: false
       });
     }
 
@@ -1032,7 +1792,7 @@
   });
 
   $("#btnAddRow").on("click", function () {
-    $("#addRowForm").slideToggle(300);
+    $("#addRowForm").slideToggle(250);
     updateAutoCompleteOptions();
     const hoje = formatDateBR(new Date());
     $("#newDataCompra").val(hoje);
@@ -1040,18 +1800,20 @@
   });
 
   $("#cancelAdd").on("click", function () {
-    $("#addRowForm").slideUp(300);
+    $("#addRowForm").slideUp(250);
     $("#newRowForm")[0].reset();
   });
 
   $("#newDataCompra, #newDataPagamento").on("input", function () {
     let v = this.value.replace(/\D/g, "").slice(0, 8);
-    if (v.length > 2) v = v.slice(0,2) + "/" + v.slice(2);
-    if (v.length > 5) v = v.slice(0,5) + "/" + v.slice(5);
+    if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+    if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5);
     this.value = v;
   });
 
-  $("#newValorTotal").on("input", function () { this.value = this.value.replace(/[^0-9,.\-]/g, ""); });
+  $("#newValorTotal").on("input", function () {
+    this.value = this.value.replace(/[^0-9,.\-]/g, "");
+  });
 
   $("#newValorTotal, #newTotalParcelas").on("input change", function () {
     const total = parseMoneyBR($("#newValorTotal").val());
@@ -1065,8 +1827,15 @@
     const dataCompra = $("#newDataCompra").val().trim();
     const dataPrimeira = $("#newDataPagamento").val().trim();
 
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataCompra)) { alert("Data da compra inválida! Use DD/MM/AAAA"); return; }
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataPrimeira)) { alert("Data da primeira parcela inválida! Use DD/MM/AAAA"); return; }
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataCompra)) {
+      alert("Data da compra inválida! Use DD/MM/AAAA");
+      return;
+    }
+
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataPrimeira)) {
+      alert("Data da primeira parcela inválida! Use DD/MM/AAAA");
+      return;
+    }
 
     const base = normalizeRow({
       "DATA COMPRA": dataCompra,
@@ -1083,8 +1852,13 @@
     });
 
     const totalParcelas = base["TOTAL PARCELAS"];
+
     for (let i = 1; i <= totalParcelas; i++) {
-      const r = { ...base, "PARCELA": i, "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1) };
+      const r = {
+        ...base,
+        "PARCELA": i,
+        "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1)
+      };
       tableData.push(normalizeRow(r));
     }
 
@@ -1095,15 +1869,18 @@
     updateAutoCompleteOptions();
 
     this.reset();
-    $("#addRowForm").slideUp(300);
+    $("#addRowForm").slideUp(250);
 
-    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
-    else alert("Parcelas adicionadas. Clique em “Salvar no Sheets” para gravar.");
+    await triggerAutoSave();
   });
 
   $("#btnExcluirRegistro").on("click", async function () {
     const selecionados = $(".row-checkbox:checked").length;
-    if (selecionados === 0) { alert("Selecione pelo menos um registro para excluir."); return; }
+    if (selecionados === 0) {
+      alert("Selecione pelo menos um registro para excluir.");
+      return;
+    }
+
     if (!confirm(`Tem certeza que deseja excluir ${selecionados} registros?`)) return;
 
     const indices = [];
@@ -1113,44 +1890,52 @@
       indices.push(idx);
     });
 
-    indices.sort((a,b) => b-a).forEach(idx => tableData.splice(idx, 1));
+    indices.sort((a, b) => b - a).forEach(idx => tableData.splice(idx, 1));
 
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
-
-    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
+    await triggerAutoSave();
   });
 
   $("#btnMarcarPago").on("click", async function () {
     const selecionados = $(".row-checkbox:checked").length;
-    if (selecionados === 0) { alert("Selecione pelo menos um registro para marcar como pago."); return; }
+    if (selecionados === 0) {
+      alert("Selecione pelo menos um registro para marcar como pago.");
+      return;
+    }
+
     if (!confirm(`Tem certeza que deseja marcar ${selecionados} registros como PAGO?`)) return;
 
     $(".row-checkbox:checked").each(function () {
       const row = $(this).closest("tr");
       const idx = dataTable.row(row).index();
-      if (tableData[idx]) tableData[idx]["STATUS"] = "Pago";
-      tableData[idx] = normalizeRow(tableData[idx]);
+      if (tableData[idx]) {
+        tableData[idx]["STATUS"] = "Pago";
+        tableData[idx] = normalizeRow(tableData[idx]);
+      }
     });
 
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
-
-    if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
+    await triggerAutoSave();
   });
 
   $("#btnUpdateTotals").on("click", function () {
     initTable();
     updateDashboard();
     updateAutoCompleteOptions();
-    alert("Totais atualizados com sucesso!");
+    setSheetsStatus("Totais atualizados localmente", "warn");
   });
 
   function updateReportTotalsFromMonthlyTable() {
     if (!monthlyReportTable) return;
-    let total = 0, pago = 0, apagar = 0;
+
+    let total = 0;
+    let pago = 0;
+    let apagar = 0;
+
     const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
     rows.forEach(r => {
       const v = parseMoneyBR(r["VALOR PARCELA"]);
@@ -1158,6 +1943,7 @@
       if ((r["STATUS"] || "").trim() === "Pago") pago += v;
       else apagar += v;
     });
+
     $("#reportTotalGeral").text(formatMoneyBR(total));
     $("#reportTotalPago").text(formatMoneyBR(pago));
     $("#reportTotalAPagar").text(formatMoneyBR(apagar));
@@ -1222,12 +2008,15 @@
     const filtered = tableData.filter(row => {
       const dt = parseDateBR(row["DATA PAGTO"]);
       if (!dt) return false;
+
       if (monthValue) {
         const [y, m] = monthValue.split("-").map(Number);
         if (dt.getFullYear() !== y || (dt.getMonth() + 1) !== m) return false;
       }
+
       if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
       if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
+
       return true;
     });
 
@@ -1265,6 +2054,7 @@
     if (!monthlyReportTable) return;
     const old = monthlyReportTable.page.len();
     monthlyReportTable.page.len(-1).draw(false);
+
     setTimeout(() => {
       monthlyReportTable.columns.adjust().draw(false);
       window.print();
@@ -1275,7 +2065,7 @@
   function maybeEnableSheetsButtons() {
     if (gapiInited && gisInited) {
       $("#btnLoadSheets, #btnSaveSheets").prop("disabled", false);
-      setSheetsStatus("Sheets: pronto (faça login)", "warn");
+      setSheetsStatus("Sheets pronto (faça login)", "warn");
     }
   }
 
@@ -1303,9 +2093,10 @@
             return;
           }
           hasToken = true;
-          setSheetsStatus("Sheets: autenticado", "ok");
+          setSheetsStatus("Sheets autenticado", "ok");
         }
       });
+
       gisInited = true;
       maybeEnableSheetsButtons();
     } catch (e) {
@@ -1315,71 +2106,83 @@
   };
 
   async function ensureAccessToken() {
-  if (hasToken) return true;
-  if (!tokenClient) return false;
+    if (hasToken) return true;
+    if (!tokenClient) return false;
 
-  // Detecta se é mobile para forçar prompt
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  return new Promise((resolve) => {
-    tokenClient.callback = (tokenResponse) => {
-      if (tokenResponse.error) {
-        console.error("[Auth] Erro OAuth:", tokenResponse);
-        setSheetsStatus("Sheets: erro no login", "err");
-        resolve(false);
-        return;
-      }
-      hasToken = true;
-      setSheetsStatus("Sheets: autenticado", "ok");
-      resolve(true);
-    };
+    return new Promise((resolve) => {
+      tokenClient.callback = (tokenResponse) => {
+        if (tokenResponse.error) {
+          console.error("[Auth] Erro OAuth:", tokenResponse);
+          setSheetsStatus("Sheets: erro no login", "err");
+          resolve(false);
+          return;
+        }
 
-    // No mobile, sempre mostra prompt para evitar falha silenciosa
-    tokenClient.requestAccessToken({ 
-      prompt: isMobile ? "consent" : ""  // força popup/login visível no mobile
+        hasToken = true;
+        setSheetsStatus("Sheets autenticado", "ok");
+        resolve(true);
+      };
+
+      tokenClient.requestAccessToken({
+        prompt: isMobile ? "consent" : ""
+      });
     });
-  });
-}
+  }
 
   async function loadFromSheets() {
-    if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
+    if (!(await ensureAccessToken())) {
+      alert("Falha na autenticação.");
+      return;
+    }
+
     try {
-      setSheetsStatus("Sheets: carregando…", "warn");
+      setSheetsStatus("Sheets carregando…", "warn");
+
       const res = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: DATA_RANGE_A1
       });
+
       const rows = res.result.values || [];
       tableData = rows.slice(1).map(row => normalizeRow({
-        "DATA COMPRA": row[0]||"",
-        "VALORES A RECEBER": row[1]||"",
-        "DESCRIÇÃO": row[2]||"",
-        "LOJA": row[3]||"",
-        "VALOR TOTAL": row[4]||"0",
-        "CARTÃO": row[5]||"",
-        "TOTAL PARCELAS": row[6]||1,
-        "PARCELA": row[7]||1,
-        "VALOR PARCELA": row[8]||"0",
-        "DATA PAGTO": row[9]||"",
-        "STATUS": row[10]||"Em aberto"
+        "DATA COMPRA": row[0] || "",
+        "VALORES A RECEBER": row[1] || "",
+        "DESCRIÇÃO": row[2] || "",
+        "LOJA": row[3] || "",
+        "VALOR TOTAL": row[4] || "0",
+        "CARTÃO": row[5] || "",
+        "TOTAL PARCELAS": row[6] || 1,
+        "PARCELA": row[7] || 1,
+        "VALOR PARCELA": row[8] || "0",
+        "DATA PAGTO": row[9] || "",
+        "STATUS": row[10] || "Em aberto"
       }));
 
-      await loadCardLimits();  // Carrega também os limites ao carregar os dados principais
-
+      await loadCardLimits();
       initTable();
       updateDashboard();
       updateAutoCompleteOptions();
-      setSheetsStatus("Sheets: carregado", "ok");
+      setSheetsStatus("Sheets carregado", "ok");
     } catch (err) {
       console.error(err);
       setSheetsStatus("Sheets: erro ao carregar", "err");
     }
   }
 
-  async function saveAllToSheets() {
-    if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
+  async function saveAllToSheets(silent = false) {
+    if (isSaving) return;
+    isSaving = true;
+
     try {
-      setSheetsStatus("Sheets: salvando…", "warn");
+      if (!(await ensureAccessToken())) {
+        if (!silent) alert("Falha na autenticação.");
+        return;
+      }
+
+      setSheetsStatus("Sheets salvando…", "warn");
+
       const values = [
         HEADERS,
         ...tableData.map(r => [
@@ -1409,20 +2212,22 @@
         resource: { values }
       });
 
-      await saveCardLimits();  // Salva também os limites ao salvar os dados principais
-
-      setSheetsStatus("Sheets: salvo", "ok");
+      await saveCardLimits();
+      setSheetsStatus("Sheets salvo automaticamente", "ok");
     } catch (err) {
       console.error(err);
       setSheetsStatus("Sheets: erro ao salvar", "err");
+      if (!silent) alert("Erro ao salvar no Sheets.");
+    } finally {
+      isSaving = false;
     }
   }
 
   $("#btnLoadSheets").on("click", loadFromSheets);
-  $("#btnSaveSheets").on("click", saveAllToSheets);
+  $("#btnSaveSheets").on("click", () => saveAllToSheets(false));
 
   $(document).ready(async function () {
-    setSheetsStatus("Sheets: aguardando bibliotecas…", "warn");
+    setSheetsStatus("Sheets aguardando bibliotecas…", "warn");
 
     await loadCardLimits();
     clearLimitForm();
@@ -1435,9 +2240,11 @@
     function refreshSummaryYearOptions() {
       const sel = $("#summaryYearFilter");
       if (sel.length === 0) return;
+
       const years = Array.from(new Set(
         tableData.map(r => parseDateBR(r["DATA PAGTO"])?.getFullYear()).filter(Boolean)
-      )).sort((a,b) => b-a);
+      )).sort((a, b) => b - a);
+
       const current = sel.val() || "";
       sel.empty().append('<option value="">Ano: Todos</option>');
       years.forEach(y => sel.append(`<option value="${y}">${y}</option>`));
@@ -1447,19 +2254,23 @@
     function refreshSummaryRecipientOptions() {
       const sel = $("#summaryRecipientFilter");
       if (sel.length === 0) return;
-      const recs = Array.from(new Set(tableData.map(r => r["VALORES A RECEBER"].trim()).filter(Boolean))).sort();
+
+      const recs = Array.from(new Set(
+        tableData.map(r => (r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
+      )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
       const current = sel.val() || "";
       sel.empty().append('<option value="">Recebedor: Todos</option>');
       recs.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
       sel.val(current);
     }
 
-    $("#summaryYearFilter").on("change", function() {
+    $("#summaryYearFilter").on("change", function () {
       summaryYearValue = this.value;
       updateDashboard();
     });
 
-    $("#summaryRecipientFilter").on("change", function() {
+    $("#summaryRecipientFilter").on("change", function () {
       summaryRecipientValue = this.value;
       updateDashboard();
     });
@@ -1470,8 +2281,12 @@
       updateDashboard();
     });
 
+    $("#btnToggleSummaryPanel").on("click", function () {
+      toggleSummaryPanel();
+    });
+
     const origUpdate = updateAutoCompleteOptions;
-    updateAutoCompleteOptions = function() {
+    updateAutoCompleteOptions = function () {
       origUpdate();
       refreshSummaryYearOptions();
       refreshSummaryRecipientOptions();
@@ -1483,6 +2298,7 @@
     $("#chkAutoSave").prop("checked", true);
     $("#btnLoadSheets, #btnSaveSheets").prop("disabled", true);
 
+    toggleSummaryPanel(false);
     maybeEnableSheetsButtons();
   });
 </script>
