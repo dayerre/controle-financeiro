@@ -2610,21 +2610,32 @@
     await triggerAutoSave();
   });
 
-  $("#btnDeleteInvestment").on("click", async function () {
-    const ids = getSelectedInvestmentIds();
-    if (ids.length === 0) {
-      alert("Selecione pelo menos um investimento para excluir.");
-      return;
-    }
+ $("#btnDeleteInvestment").on("click", async function () {
+  const selecionados = $(".investment-row-checkbox:checked").length;
 
-    if (!confirm(`Tem certeza que deseja excluir ${ids.length} investimento(s)?`)) return;
+  if (selecionados === 0) {
+    alert("Selecione pelo menos um investimento para excluir.");
+    return;
+  }
 
-    investmentData = investmentData.filter(r => !ids.includes(r.id));
-    initInvestmentTable();
-    updateInvestmentDashboard();
-    updateAutoCompleteOptions();
-    await triggerAutoSave();
-  });
+  if (!confirm(`Tem certeza que deseja excluir ${selecionados} investimento(s)?`)) return;
+
+  const idsSelecionados = $(".investment-row-checkbox:checked")
+    .map(function () {
+      return String($(this).data("id"));
+    })
+    .get();
+
+  investmentData = investmentData.filter(item => !idsSelecionados.includes(String(item.id)));
+
+  initInvestmentTable();
+  updateInvestmentDashboard();
+  refreshInvestmentFilterOptions();
+
+  if ($("#chkAutoSave").prop("checked")) {
+    await saveInvestmentsToSheets();
+  }
+});
 
   $("#btnMarkInvestmentReleased").on("click", async function () {
     const ids = getSelectedInvestmentIds();
