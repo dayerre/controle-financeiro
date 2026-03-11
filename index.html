@@ -8,400 +8,698 @@
   />
   <title>Controle Financeiro - Dayerre</title>
 
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
-  />
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/plug-ins/1.13.6/sorting/date-eu.js"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
   <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 
   <style>
+    :root {
+      --bg: #eef3f8;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fc;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #0d6efd;
+      --primary-dark: #0a58ca;
+      --success: #198754;
+      --danger: #dc3545;
+      --warning: #f59f00;
+      --info: #0dcaf0;
+      --purple: #6f42c1;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f0f2f5;
+      background: linear-gradient(180deg, #edf4fb 0%, #f7f9fc 100%);
       margin: 0;
       padding: 0;
       min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
       font-size: 14px;
-      color: #1f2937;
     }
 
-    .navbar-app {
-      background: linear-gradient(135deg, #007aff, #005bb5);
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: 600;
+    body {
+      padding-bottom: 32px;
+    }
+
+    .app-header {
       position: sticky;
       top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      z-index: 1050;
+      background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 60%, #084298 100%);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
     }
 
-    .card,
+    .app-header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(6px);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .brand-subtitle {
+      margin: 2px 0 0;
+      font-size: 12px;
+      opacity: 0.88;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .main-shell {
+      max-width: 1180px;
+      margin: 18px auto 0;
+      padding: 0 14px;
+    }
+
     .panel-card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-      padding: 24px;
-      margin-bottom: 24px;
-      border: none;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      overflow: hidden;
     }
 
     .panel-card-body {
-      width: 100%;
+      padding: 18px;
     }
 
     .section-title {
-      font-size: 1.5rem;
+      margin: 0;
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 6px;
-      color: #1f2937;
+      color: var(--text);
     }
 
     .section-subtitle {
-      margin: 0;
-      color: #6b7280;
+      margin: 4px 0 0;
       font-size: 13px;
+      color: var(--muted);
+    }
+
+    .summary-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .summary-toggle:focus {
+      outline: none;
+    }
+
+    .summary-toggle-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .summary-toggle-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e8f1ff;
+      color: var(--primary);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .summary-toggle-meta {
+      min-width: 0;
+    }
+
+    .summary-toggle-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .summary-toggle-text {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .summary-toggle-caret {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      background: #fff;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .summary-toggle[aria-expanded="true"] .summary-toggle-caret {
+      transform: rotate(180deg);
+    }
+
+    .summary-content {
+      border-top: 1px solid var(--line);
+      padding: 0 18px 18px;
+      display: none;
+    }
+
+    .summary-content.open {
+      display: block;
+    }
+
+    .summary-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 18px 0 16px;
+    }
+
+    .summary-grid,
+    .investment-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
     }
 
     .summary-card {
-      text-align: center;
-      padding: 20px;
-      border-radius: 16px;
-      transition: transform 0.2s, box-shadow 0.2s;
-      background: #f8fafc;
-      border: 1px solid #eef2f7;
-      height: 100%;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 140px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .summary-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-    }
-
-    .summary-icon {
-      font-size: 2.2rem;
-      margin-bottom: 12px;
-      opacity: 0.9;
-    }
-
-    .summary-value {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1.1;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
     }
 
     .summary-card-top {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-start;
       gap: 10px;
-      margin-bottom: 10px;
-      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    .summary-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: #eef4ff;
     }
 
     .summary-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #6b7280;
       margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
     }
 
-    .summary-card.invested .summary-icon,
-    .summary-card.invested .summary-value {
-      color: #2563eb;
+    .summary-value {
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      word-break: break-word;
     }
 
-    .summary-card.maturing .summary-icon,
-    .summary-card.maturing .summary-value {
-      color: #d97706;
+    .summary-card.total .summary-icon {
+      color: var(--primary);
+      background: #e9f2ff;
     }
 
-    .summary-card.released .summary-icon,
-    .summary-card.released .summary-value {
-      color: #059669;
+    .summary-card.paid .summary-icon {
+      color: var(--success);
+      background: #eaf8f1;
     }
 
-    .summary-card.paid .summary-icon,
-    .summary-card.paid .summary-value {
-      color: #0f766e;
+    .summary-card.opened .summary-icon {
+      color: var(--danger);
+      background: #fff0f2;
     }
 
-    .summary-card.opened .summary-icon,
-    .summary-card.opened .summary-value {
-      color: #7c3aed;
+    .summary-card.invested .summary-icon {
+      color: var(--purple);
+      background: #f3ecff;
     }
 
-    .edit-cell,
-    .edit-investment-cell {
-      cursor: pointer;
-      padding: 6px !important;
+    .summary-card.maturing .summary-icon {
+      color: #fd7e14;
+      background: #fff3e8;
+    }
+
+    .summary-card.released .summary-icon {
+      color: var(--success);
+      background: #eaf8f1;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .summary-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .summary-hint {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .alert-custom {
+      margin-top: 16px;
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
       font-size: 13px;
     }
 
-    .edit-cell:hover,
-    .edit-investment-cell:hover {
-      background: #f0f8ff !important;
-    }
-
-    #addRowForm,
-    #investmentForm {
-      margin-top: 20px;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 16px;
-      display: none;
-      border: 1px solid #e5e7eb;
-    }
-
-    .form-card-title {
-      font-size: 1rem;
-      font-weight: 700;
+    .launch-header,
+    .investment-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       margin-bottom: 14px;
-      color: #1f2937;
+    }
+
+    .launch-actions,
+    .investment-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn-main-action {
+      min-height: 46px;
+      border-radius: 14px;
+      font-weight: 700;
+      padding: 0 16px;
+      border: 0;
+      box-shadow: 0 8px 18px rgba(13, 110, 253, 0.18);
+    }
+
+    .btn-investment {
+      background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(111, 66, 193, 0.22);
+    }
+
+    .btn-investment:hover {
+      color: #fff;
+      filter: brightness(1.02);
+    }
+
+    .btn-soft {
+      min-height: 42px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .filter-panel {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .filter-panel-title {
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .filter-grid.investments {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .filter-grid .btn,
+    .filter-grid .form-control {
+      min-height: 42px;
+      border-radius: 12px;
+    }
+
+    .form-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 14px;
+      display: none;
+    }
+
+    .form-card.investment-form {
+      background: linear-gradient(180deg, #ffffff 0%, #fbf8ff 100%);
+      border-color: #e7dbff;
+    }
+
+    .form-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .form-control,
+    .custom-select {
+      min-height: 44px;
+      border-radius: 12px;
+      border-color: #dbe3ee;
+      box-shadow: none !important;
+    }
+
+    .form-control:focus,
+    .custom-select:focus {
+      border-color: #9ec5fe;
+    }
+
+    .table-wrap {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    table.dataTable {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+
+    table.dataTable thead th {
+      background: #f7f9fc;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      border-bottom: 1px solid var(--line) !important;
+      padding: 12px 8px !important;
+      white-space: nowrap;
     }
 
     table.dataTable td {
-      padding: 6px !important;
+      padding: 10px 8px !important;
       font-size: 13px;
       vertical-align: middle;
     }
 
-    table.dataTable th {
-      padding: 8px !important;
-      font-size: 13px;
-      text-align: center;
-      vertical-align: middle;
+    .edit-cell {
+      cursor: pointer;
     }
 
-    .dataTables_wrapper .dataTables_scrollBody {
-      overflow-x: auto !important;
+    .edit-cell:hover {
+      background: #f4f8ff !important;
     }
 
     .money-cell {
       text-align: right;
       white-space: nowrap;
-      font-weight: 500;
+      font-weight: 700;
     }
 
-    #monthlyReportModal .modal-dialog {
-      max-width: 95%;
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+      border: 1px solid #dbe3ee;
+      border-radius: 10px;
+      min-height: 36px;
+      padding: 4px 10px;
+      background: #fff;
     }
 
-    #monthlyReportTable td,
-    #monthlyReportTable th {
-      padding: 6px !important;
-      font-size: 13px;
+    .dataTables_scrollBody {
+      overflow-x: auto !important;
     }
 
-    .month-input {
-      width: 180px;
+    .investment-shell {
+      display: none;
     }
 
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
-      align-items: center;
-    }
-
-    .toolbar .btn {
-      margin: 0 !important;
-    }
-
-    .status-pill {
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .investment-shell.active {
+      display: block;
     }
 
     .limit-row-card {
       background: #f8f9fa;
-      border-radius: 12px;
-      padding: 12px;
-      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
     }
 
     .limit-table td,
     .limit-table th {
       font-size: 13px;
-      padding: 8px !important;
+      padding: 10px 8px !important;
     }
 
     .tag {
       display: inline-block;
-      padding: 3px 8px;
+      padding: 4px 9px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
+      font-weight: 700;
       background: #eef2ff;
       color: #2b3a67;
       margin-right: 6px;
-      margin-top: 4px;
-    }
-
-    .table-wrap {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    .filter-panel {
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 14px;
-    }
-
-    .filter-panel-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-    }
-
-    .filter-grid.investments {
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    }
-
-    .investment-shell {
-      border-top: 4px solid #0f766e;
-    }
-
-    .investment-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-
-    .investment-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 14px;
-      margin-top: 16px;
-      margin-bottom: 16px;
-    }
-
-    .btn-investment {
-      background: linear-gradient(135deg, #0f766e, #0d9488);
-      color: white;
-      border: none;
-    }
-
-    .btn-investment:hover {
-      color: white;
-      filter: brightness(0.98);
-    }
-
-    .btn-soft {
-      border-radius: 12px;
-    }
-
-    .btn-main-action {
-      border-radius: 12px;
-      font-weight: 600;
-    }
-
-    .alert-custom {
-      border-radius: 14px;
-      font-size: 13px;
-      margin-top: 14px;
-      margin-bottom: 0;
-    }
-
-    .table td strong,
-    .table th strong {
-      font-weight: 700;
+      margin-top: 6px;
     }
 
     .modal-content {
-      border-radius: 18px;
-      border: none;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+      border: 0;
+      border-radius: 20px;
+      overflow: hidden;
     }
 
     .modal-header,
     .modal-footer {
-      border-color: #eef2f7;
+      border-color: var(--line);
     }
 
-    .close {
-      outline: none !important;
+    #monthlyReportModal .modal-dialog,
+    #cardLimitsModal .modal-dialog {
+      max-width: 95%;
     }
 
-    @media (max-width: 768px) {
-      .navbar-app {
-        font-size: 18px;
-        padding: 16px;
+    #monthlyReportTable td,
+    #monthlyReportTable th {
+      padding: 8px !important;
+      font-size: 13px;
+    }
+
+    .month-input {
+      width: 100%;
+    }
+
+    .hidden-save {
+      display: none !important;
+    }
+
+    @media (max-width: 991.98px) {
+      .summary-grid,
+      .investment-summary-grid,
+      .filter-grid,
+      .filter-grid.investments {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .app-header-inner {
+        padding: 14px;
+        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .card,
-      .panel-card {
-        padding: 16px;
-        border-radius: 16px;
-      }
-
-      .summary-value {
-        font-size: 1.5rem;
-      }
-
-      .toolbar {
-        gap: 6px;
-      }
-
-      .toolbar .btn,
-      .toolbar .form-control {
+      .header-status {
         width: 100%;
+        justify-content: flex-start;
       }
 
+      .main-shell {
+        padding: 0 10px;
+        margin-top: 12px;
+      }
+
+      .panel-card-body,
+      .summary-content,
+      .summary-toggle {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .summary-grid,
+      .investment-summary-grid,
       .filter-grid,
       .filter-grid.investments {
         grid-template-columns: 1fr;
       }
 
+      .launch-header,
       .investment-header {
         flex-direction: column;
+        align-items: stretch;
+      }
+
+      .launch-actions,
+      .investment-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .launch-actions .btn,
+      .investment-actions .btn {
+        width: 100%;
+      }
+
+      .btn-main-action {
+        width: 100%;
+      }
+
+      .summary-value {
+        font-size: 24px;
+      }
+
+      .section-title,
+      .summary-toggle-title {
+        font-size: 18px;
+      }
+
+      .brand-title {
+        font-size: 18px;
+      }
+
+      table.dataTable td,
+      table.dataTable th {
+        font-size: 12px !important;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .launch-actions,
+      .investment-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-icon,
+      .summary-toggle-icon {
+        width: 42px;
+        height: 42px;
+      }
+
+      .summary-card {
+        min-height: auto;
       }
     }
 
     @media print {
-      body {
+      body * {
         visibility: hidden !important;
       }
 
@@ -438,325 +736,298 @@
   </style>
 </head>
 <body>
-  <div class="navbar-app">Controle Financeiro - Dayerre</div>
-
-  <div class="container pt-4">
-    <div class="card">
-      <h3 class="mb-4 text-center">Resumo Financeiro</h3>
-
-      <div
-        class="d-flex flex-wrap justify-content-center align-items-center mb-3"
-        style="gap:10px;"
-      >
-        <select
-          id="summaryYearFilter"
-          class="form-control form-control-sm"
-          style="max-width:160px;"
-        >
-          <option value="">Ano: Todos</option>
-        </select>
-
-        <select
-          id="summaryRecipientFilter"
-          class="form-control form-control-sm"
-          style="max-width:220px;"
-        >
-          <option value="">Recebedor: Todos</option>
-        </select>
-
-        <button
-          id="btnToggleSummaryValues"
-          type="button"
-          class="btn btn-outline-secondary btn-sm"
-        >
-          Ocultar valores
-        </button>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="brand-wrap">
+        <div class="brand-icon">
+          <i class="bi bi-wallet2"></i>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Controle Financeiro</h1>
+          <p class="brand-subtitle">Lançamentos, filtros, investimentos e resumo em um só lugar</p>
+        </div>
       </div>
 
-      <div class="row text-center">
-        <div class="col-md-4 mb-3">
-          <div class="summary-card bg-light shadow-sm">
-            <i class="bi bi-wallet2 summary-icon text-primary"></i>
-            <div>Total Geral</div>
+      <div class="header-status">
+        <span id="sheetsStatus" class="status-pill bg-light text-secondary">
+          <i class="bi bi-cloud"></i>
+          Sheets: aguardando…
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell">
+    <section class="panel-card">
+      <button
+        id="btnToggleSummaryPanel"
+        class="summary-toggle"
+        type="button"
+        aria-expanded="false"
+      >
+        <div class="summary-toggle-left">
+          <div class="summary-toggle-icon">
+            <i class="bi bi-bar-chart-line"></i>
+          </div>
+          <div class="summary-toggle-meta">
+            <h2 class="summary-toggle-title">Resumo Financeiro</h2>
+            <p class="summary-toggle-text">Toque para abrir os totais, filtros e alertas</p>
+          </div>
+        </div>
+        <div class="summary-toggle-caret">
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </button>
+
+      <div id="summaryContent" class="summary-content">
+        <div class="summary-toolbar">
+          <select id="summaryYearFilter" class="form-control form-control-sm" style="max-width: 170px;">
+            <option value="">Ano: Todos</option>
+          </select>
+
+          <select id="summaryRecipientFilter" class="form-control form-control-sm" style="max-width: 220px;">
+            <option value="">Recebedor: Todos</option>
+          </select>
+
+          <button id="btnToggleSummaryValues" type="button" class="btn btn-outline-secondary btn-sm btn-soft">
+            Ocultar valores
+          </button>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card total">
+            <div class="summary-card-top">
+              <p class="summary-label">Total Geral</p>
+              <div class="summary-icon">
+                <i class="bi bi-wallet2"></i>
+              </div>
+            </div>
             <div class="summary-value text-primary" id="totalGeral">R$ 0,00</div>
           </div>
-        </div>
 
-        <div class="col-md-4 mb-3">
-          <div class="summary-card bg-light shadow-sm">
-            <i class="bi bi-check-circle summary-icon text-success"></i>
-            <div>Total Pago</div>
+          <div class="summary-card paid">
+            <div class="summary-card-top">
+              <p class="summary-label">Total Pago</p>
+              <div class="summary-icon">
+                <i class="bi bi-check-circle"></i>
+              </div>
+            </div>
             <div class="summary-value text-success" id="totalPago">R$ 0,00</div>
           </div>
-        </div>
 
-        <div class="col-md-4 mb-3">
-          <div class="summary-card bg-light shadow-sm">
-            <i class="bi bi-exclamation-triangle summary-icon text-danger"></i>
-            <div>Total a Pagar</div>
+          <div class="summary-card opened">
+            <div class="summary-card-top">
+              <p class="summary-label">Total a Pagar</p>
+              <div class="summary-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+              </div>
+            </div>
             <div class="summary-value text-danger" id="totalAPagar">R$ 0,00</div>
           </div>
         </div>
-      </div>
 
-      <div
-        id="overdueAlert"
-        class="alert alert-danger text-center mt-3"
-        style="display:none;"
-      >
-        <i class="bi bi-exclamation-triangle"></i>
-        Atenção: Existem parcelas vencidas no período filtrado!
-      </div>
-
-      <div
-        class="d-flex flex-wrap justify-content-between align-items-center mt-2"
-        style="gap:10px;"
-      >
-        <div>
-          <span id="sheetsStatus" class="status-pill bg-light text-secondary">
-            Sheets aguardando...
-          </span>
+        <div id="overdueAlert" class="alert alert-danger alert-custom text-center" style="display:none;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Atenção: existem parcelas vencidas no período filtrado.
         </div>
 
-        <div>
-          <label class="mb-0" style="user-select:none;">
-            <input type="checkbox" id="chkAutoSave" checked />
-            Salvar automático no Sheets
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Lançamentos — Mais recente primeiro</h3>
-
-      <div class="toolbar">
-        <button id="btnAddRow" class="btn btn-primary" type="button">Nova Parcela</button>
-        <button id="btnExcluirRegistro" class="btn btn-danger" type="button">Excluir Registros</button>
-        <button id="btnMarcarPago" class="btn btn-success" type="button">Marcar como Pago</button>
-        <button id="btnUpdateTotals" class="btn btn-secondary" type="button">Atualizar Totais</button>
-        <button id="btnMonthlyReport" class="btn btn-info" type="button">Relatórios Mensais</button>
-        <button id="btnCardLimits" class="btn btn-outline-dark" type="button">
-          <i class="bi bi-credit-card"></i>
-          Limites de Cartão
-        </button>
-
-        <select
-          id="launchCardFilter"
-          class="form-control form-control-sm"
-          style="max-width:220px;"
-        >
-          <option value="">Cartão: Todos</option>
-        </select>
-
-        <input
-          type="month"
-          id="launchPayMonthFilter"
-          class="form-control form-control-sm"
-          style="max-width:180px;"
-        />
-
-        <button
-          id="btnClearLaunchFilters"
-          type="button"
-          class="btn btn-outline-secondary btn-sm"
-        >
-          Limpar filtros
-        </button>
-
-        <button id="btnLoadSheets" class="btn btn-warning" type="button" disabled>
-          Carregar do Sheets
-        </button>
-
-        <button id="btnSaveSheets" class="btn btn-warning" type="button" disabled>
-          Salvar no Sheets
-        </button>
-
-        <input type="file" id="fileInput" accept=".csv" style="display:none;" />
-      </div>
-
-      <div id="addRowForm" style="display:none;">
-        <div class="card bg-light mb-4">
-          <div class="card-body">
-            <h5 class="card-title">Adicionar Nova Parcela</h5>
-
-            <form id="newRowForm">
-              <div class="form-row">
-                <div class="col-md-3 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newDataCompra"
-                    placeholder="DD/MM/AAAA"
-                    required
-                  />
-                </div>
-
-                <div class="col-md-3 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newReceber"
-                    list="receberOptions"
-                    placeholder="Quem recebe"
-                    required
-                  />
-                  <datalist id="receberOptions"></datalist>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newDescricao"
-                    placeholder="Descrição"
-                    required
-                  />
-                </div>
-
-                <div class="col-md-2 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newLoja"
-                    list="lojaOptions"
-                    placeholder="Loja"
-                  />
-                  <datalist id="lojaOptions"></datalist>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="col-md-3 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newValorTotal"
-                    placeholder="R$ Valor Total"
-                    required
-                  />
-                </div>
-
-                <div class="col-md-3 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newCartao"
-                    list="cartaoOptions"
-                    placeholder="Cartão ex.: BTG, SICREDI, XP..."
-                    required
-                  />
-                  <datalist id="cartaoOptions"></datalist>
-                </div>
-
-                <div class="col-md-2 mb-2">
-                  <input
-                    type="number"
-                    class="form-control"
-                    id="newTotalParcelas"
-                    min="1"
-                    value="1"
-                    placeholder="Total Parc."
-                    required
-                  />
-                </div>
-
-                <div class="col-md-2 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newValorParcela"
-                    placeholder="R$ Parcela"
-                    readonly
-                  />
-                </div>
-
-                <div class="col-md-2 mb-2">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="newDataPagamento"
-                    placeholder="DD/MM/AAAA"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="col-md-3 mb-2">
-                  <select class="form-control" id="newStatus" required>
-                    <option value="Pago">Pago</option>
-                    <option value="Em aberto" selected>Em aberto</option>
-                  </select>
-                </div>
-
-                <div class="col-md-2 mb-2">
-                  <button type="submit" class="btn btn-success btn-block">Adicionar</button>
-                </div>
-
-                <div class="col-md-2 mb-2">
-                  <button type="button" id="cancelAdd" class="btn btn-secondary btn-block">
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            </form>
+        <div class="summary-footer">
+          <div class="summary-hint">
+            <i class="bi bi-arrow-repeat"></i>
+            Salvamento automático ativo após alterações
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="table-wrap">
-        <table id="dataTable" class="display compact" style="width:100%;">
-          <thead>
-            <tr>
-              <th><input type="checkbox" id="selectAll" /></th>
-              <th>DATA COMPRA</th>
-              <th>VALORES A RECEBER</th>
-              <th>DESCRIÇÃO</th>
-              <th>LOJA</th>
-              <th>VALOR TOTAL</th>
-              <th>CARTÃO</th>
-              <th>TOTAL PARCELAS</th>
-              <th>PARCELA</th>
-              <th>VALOR PARCELA</th>
-              <th>DATA PAGTO</th>
-              <th>STATUS</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+    <section class="panel-card">
+      <div class="panel-card-body">
+        <div class="launch-header">
+          <div>
+            <h2 class="section-title">Lançamentos</h2>
+            <p class="section-subtitle">Visual reorganizado para facilitar o uso no celular</p>
+          </div>
+
+          <button id="btnAddRow" class="btn btn-primary btn-main-action" type="button">
+            <i class="bi bi-plus-lg"></i>
+            Nova parcela
+          </button>
+        </div>
+
+        <div class="launch-actions">
+          <button id="btnMarcarPago" class="btn btn-success btn-soft" type="button">
+            <i class="bi bi-check2-circle"></i>
+            Marcar como pago
+          </button>
+
+          <button id="btnExcluirRegistro" class="btn btn-outline-danger btn-soft" type="button">
+            <i class="bi bi-trash"></i>
+            Excluir registros
+          </button>
+
+          <button id="btnMonthlyReport" class="btn btn-outline-info btn-soft" type="button">
+            <i class="bi bi-graph-up"></i>
+            Relatórios mensais
+          </button>
+
+          <button id="btnCardLimits" class="btn btn-outline-dark btn-soft" type="button">
+            <i class="bi bi-credit-card"></i>
+            Limites de cartão
+          </button>
+
+          <button id="btnToggleInvestments" class="btn btn-investment btn-main-action" type="button">
+            <i class="bi bi-piggy-bank"></i>
+            Investimentos
+          </button>
+
+          <button id="btnUpdateTotals" class="btn btn-outline-secondary btn-soft" type="button">
+            <i class="bi bi-arrow-clockwise"></i>
+            Atualizar totais
+          </button>
+
+          <button id="btnLoadSheets" class="btn btn-warning btn-soft" type="button" disabled>
+            <i class="bi bi-cloud-download"></i>
+            Carregar do Sheets
+          </button>
+
+          <button id="btnSaveSheets" class="btn btn-warning btn-soft hidden-save" type="button" disabled>
+            Salvar no Sheets
+          </button>
+        </div>
+
+        <div class="filter-panel">
+          <div class="filter-panel-title">
+            <i class="bi bi-funnel"></i>
+            Filtros da lista principal
+          </div>
+
+          <div class="filter-grid">
+            <select id="launchRecipientFilter" class="form-control form-control-sm">
+              <option value="">Recebedor: Todos</option>
+            </select>
+
+            <select id="launchCardFilter" class="form-control form-control-sm">
+              <option value="">Cartão: Todos</option>
+            </select>
+
+            <input type="month" id="launchPayMonthFilter" class="form-control form-control-sm" />
+
+            <button id="btnClearLaunchFilters" type="button" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-eraser"></i>
+              Limpar filtros
+            </button>
+          </div>
+        </div>
+
+        <div id="addRowForm" class="form-card">
+          <div class="form-card-title">
+            <i class="bi bi-journal-plus"></i>
+            Adicionar nova parcela
+          </div>
+
+          <form id="newRowForm">
+            <div class="form-row">
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="newDataCompra" placeholder="Data da compra - DD/MM/AAAA" required />
+              </div>
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="newReceber" list="receberOptions" placeholder="Quem recebe" required />
+                <datalist id="receberOptions"></datalist>
+              </div>
+              <div class="col-md-4 mb-2">
+                <input type="text" class="form-control" id="newDescricao" placeholder="Descrição" required />
+              </div>
+              <div class="col-md-2 mb-2">
+                <input type="text" class="form-control" id="newLoja" list="lojaOptions" placeholder="Loja" />
+                <datalist id="lojaOptions"></datalist>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="newValorTotal" placeholder="R$ Valor total" required />
+              </div>
+              <div class="col-md-3 mb-2">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="newCartao"
+                  list="cartaoOptions"
+                  placeholder="Cartão (ex.: BTG, SICREDI, XP)"
+                  required
+                />
+                <datalist id="cartaoOptions"></datalist>
+              </div>
+              <div class="col-md-2 mb-2">
+                <input type="number" class="form-control" id="newTotalParcelas" min="1" value="1" placeholder="Total parcelas" required />
+              </div>
+              <div class="col-md-2 mb-2">
+                <input type="text" class="form-control" id="newValorParcela" placeholder="R$ Parcela" readonly />
+              </div>
+              <div class="col-md-2 mb-2">
+                <select class="form-control" id="newStatus" required>
+                  <option value="Pago">Pago</option>
+                  <option value="Em aberto" selected>Em aberto</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="col-md-4 mb-2">
+                <input type="text" class="form-control" id="newDataPagamento" placeholder="Primeiro pagamento - DD/MM/AAAA" required />
+              </div>
+              <div class="col-md-4 mb-2">
+                <button type="submit" class="btn btn-success btn-block btn-soft">
+                  <i class="bi bi-plus-circle"></i>
+                  Adicionar
+                </button>
+              </div>
+              <div class="col-md-4 mb-2">
+                <button type="button" id="cancelAdd" class="btn btn-outline-secondary btn-block btn-soft">
+                  <i class="bi bi-x-circle"></i>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="table-wrap">
+          <table id="dataTable" class="display compact" style="width:100%;">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
+                <th>DATA COMPRA</th>
+                <th>VALORES A RECEBER</th>
+                <th>DESCRIÇÃO</th>
+                <th>LOJA</th>
+                <th>VALOR TOTAL</th>
+                <th>CARTÃO</th>
+                <th>TOTAL PARCELAS</th>
+                <th>PARCELA</th>
+                <th>VALOR PARCELA</th>
+                <th>DATA PAGTO</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
 
     <section id="investmentShell" class="panel-card investment-shell">
       <div class="panel-card-body">
         <div class="investment-header">
           <div>
             <h2 class="section-title">Investimentos</h2>
-            <p class="section-subtitle">
-              Área separada do resumo financeiro principal, com alerta próprio de vencimento.
-            </p>
+            <p class="section-subtitle">Área separada do resumo financeiro principal, com alerta próprio de vencimento</p>
           </div>
 
-          <div class="d-flex flex-wrap" style="gap:10px;">
-            <button
-              id="btnLoadInvestments"
-              class="btn btn-outline-warning btn-soft"
-              type="button"
-            >
-              <i class="bi bi-cloud-download"></i>
-              Recarregar investimentos
-            </button>
-
-            <button
-              id="btnAddInvestment"
-              class="btn btn-investment btn-main-action"
-              type="button"
-            >
-              <i class="bi bi-plus-lg"></i>
-              Novo investimento
-            </button>
-          </div>
+          <button id="btnAddInvestment" class="btn btn-investment btn-main-action" type="button">
+            <i class="bi bi-plus-lg"></i>
+            Novo investimento
+          </button>
         </div>
 
         <div class="investment-summary-grid">
@@ -772,7 +1043,7 @@
 
           <div class="summary-card maturing">
             <div class="summary-card-top">
-              <p class="summary-label">Vencidos / pendentes</p>
+              <p class="summary-label">A Vencer / Vencidos</p>
               <div class="summary-icon">
                 <i class="bi bi-hourglass-split"></i>
               </div>
@@ -782,75 +1053,41 @@
 
           <div class="summary-card released">
             <div class="summary-card-top">
-              <p class="summary-label">Já liberados</p>
+              <p class="summary-label">Liberados</p>
               <div class="summary-icon">
                 <i class="bi bi-unlock"></i>
               </div>
             </div>
             <div class="summary-value" id="investmentTotalReleased">0</div>
           </div>
-
-          <div class="summary-card paid">
-            <div class="summary-card-top">
-              <p class="summary-label">Liberado hoje</p>
-              <div class="summary-icon">
-                <i class="bi bi-wallet2"></i>
-              </div>
-            </div>
-            <div class="summary-value" id="investmentReleasedToday">R$ 0,00</div>
-          </div>
-
-          <div class="summary-card opened">
-            <div class="summary-card-top">
-              <p class="summary-label">IR estimado total</p>
-              <div class="summary-icon">
-                <i class="bi bi-receipt"></i>
-              </div>
-            </div>
-            <div class="summary-value" id="investmentEstimatedIr">R$ 0,00</div>
-          </div>
-
-          <div class="summary-card paid">
-            <div class="summary-card-top">
-              <p class="summary-label">Líquido estimado</p>
-              <div class="summary-icon">
-                <i class="bi bi-graph-up-arrow"></i>
-              </div>
-            </div>
-            <div class="summary-value" id="investmentEstimatedNet">R$ 0,00</div>
-          </div>
         </div>
 
-        <div
-          id="investmentOverdueAlert"
-          class="alert alert-warning alert-custom"
-          style="display:none;"
-        >
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          Existem investimentos vencidos aguardando liberação ou atualização de resgate.
+        <div id="investmentOverdueAlert" class="alert alert-warning alert-custom text-center" style="display:none;">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          Atenção: existem investimentos com prazo vencido e valor possivelmente liberado.
         </div>
 
-        <div class="toolbar mt-3">
-          <button id="btnMarkInvestmentReleased" class="btn btn-outline-success" type="button">
+        <div class="investment-actions">
+          <button id="btnMarkInvestmentReleased" class="btn btn-success btn-soft" type="button">
             <i class="bi bi-unlock"></i>
             Marcar como liberado
           </button>
 
-          <button id="btnMarkInvestmentRescued" class="btn btn-outline-primary" type="button">
-            <i class="bi bi-cash-coin"></i>
-            Marcar como resgatado
-          </button>
-
-          <button id="btnDeleteInvestment" class="btn btn-outline-danger" type="button">
+          <button id="btnDeleteInvestment" class="btn btn-outline-danger btn-soft" type="button">
             <i class="bi bi-trash"></i>
             Excluir investimento
           </button>
+
+          <button id="btnLoadInvestments" class="btn btn-outline-warning btn-soft" type="button">
+            <i class="bi bi-cloud-download"></i>
+            Recarregar investimentos
+          </button>
         </div>
 
-        <div class="filter-panel mt-3">
+        <div class="filter-panel">
           <div class="filter-panel-title">
             <i class="bi bi-funnel"></i>
-            Filtros dos investimentos
+            Filtros de investimentos
           </div>
 
           <div class="filter-grid investments">
@@ -866,126 +1103,68 @@
               <option value="">Status: Todos</option>
               <option value="Ativo">Ativo</option>
               <option value="Vencido">Vencido</option>
-              <option value="Liberado">Liberado</option>
               <option value="Resgatado">Resgatado</option>
             </select>
 
             <select id="investmentReleasedFilter" class="form-control form-control-sm">
               <option value="">Liberação: Todos</option>
-              <option value="TRUE">Somente liberados</option>
-              <option value="FALSE">Somente não liberados</option>
+              <option value="TRUE">Liberado</option>
+              <option value="FALSE">Não liberado</option>
             </select>
 
-            <button
-              id="btnOnlyExpiredInvestments"
-              type="button"
-              class="btn btn-outline-warning btn-sm"
-            >
-              <i class="bi bi-clock-history"></i>
-              Somente vencidos
-            </button>
-
-            <button
-              id="btnClearInvestmentFilters"
-              type="button"
-              class="btn btn-outline-secondary btn-sm"
-            >
+            <button id="btnClearInvestmentFilters" type="button" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-eraser"></i>
               Limpar filtros
             </button>
           </div>
         </div>
 
-        <div id="investmentForm" class="form-card investment-form" style="display:none;">
+        <div id="investmentForm" class="form-card investment-form">
           <div class="form-card-title">
-            <i class="bi bi-bank2"></i>
-            Cadastrar investimento
+            <i class="bi bi-bank"></i>
+            Adicionar investimento
           </div>
 
           <form id="newInvestmentForm">
             <div class="form-row">
               <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invDataInvestimento"
-                  placeholder="Data investimento DD/MM/AAAA"
-                  required
-                />
+                <input type="text" class="form-control" id="invDataInvestimento" placeholder="Data investimento - DD/MM/AAAA" required />
               </div>
-
               <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invBanco"
-                  list="investmentBankOptions"
-                  placeholder="Banco"
-                  required
-                />
+                <input type="text" class="form-control" id="invBanco" list="investmentBankOptions" placeholder="Banco / Instituição" required />
                 <datalist id="investmentBankOptions"></datalist>
               </div>
-
               <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invTipo"
-                  placeholder="Tipo ex.: CDB, LCI, LCA"
-                  required
-                />
-              </div>
-
-              <div class="col-md-3 mb-2">
-                <select class="form-control" id="invTipoTributacao" required>
-                  <option value="IR_REGRESSIVO" selected>Tributação: IR regressivo</option>
-                  <option value="ISENTO">Tributação: Isento</option>
-                  <option value="MANUAL">Tributação: Manual</option>
+                <select class="form-control" id="invTipo" required>
+                  <option value="">Tipo do investimento</option>
+                  <option value="LCA">LCA</option>
+                  <option value="LCI">LCI</option>
+                  <option value="CDB">CDB</option>
+                  <option value="TESOURO">TESOURO</option>
+                  <option value="FUNDO">FUNDO</option>
+                  <option value="OUTRO">OUTRO</option>
                 </select>
+              </div>
+              <div class="col-md-3 mb-2">
+                <input type="text" class="form-control" id="invValorAplicado" placeholder="R$ Valor aplicado" required />
               </div>
             </div>
 
             <div class="form-row">
               <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invValorAplicado"
-                  placeholder="Valor aplicado"
-                  required
-                />
+                <input type="number" class="form-control" id="invPrazoDias" min="0" placeholder="Prazo em dias" />
               </div>
-
-              <div class="col-md-2 mb-2">
-                <input
-                  type="number"
-                  class="form-control"
-                  id="invPrazoDias"
-                  min="0"
-                  placeholder="Prazo dias"
-                  required
-                />
-              </div>
-
               <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invDataVencimento"
-                  placeholder="Data vencimento DD/MM/AAAA"
-                  required
-                />
+                <input type="text" class="form-control" id="invDataVencimento" placeholder="Data vencimento - DD/MM/AAAA" required />
               </div>
-
-              <div class="col-md-2 mb-2">
+              <div class="col-md-3 mb-2">
                 <select class="form-control" id="invStatus" required>
                   <option value="Ativo" selected>Ativo</option>
                   <option value="Vencido">Vencido</option>
-                  <option value="Liberado">Liberado</option>
                   <option value="Resgatado">Resgatado</option>
                 </select>
               </div>
-
-              <div class="col-md-2 mb-2">
+              <div class="col-md-3 mb-2">
                 <select class="form-control" id="invLiberado" required>
                   <option value="FALSE" selected>Não liberado</option>
                   <option value="TRUE">Liberado</option>
@@ -994,72 +1173,21 @@
             </div>
 
             <div class="form-row">
-              <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invTaxa"
-                  placeholder="Taxa ex.: 100% CDI, 12,5% a.a."
-                />
-              </div>
-
-              <div class="col-md-3 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invValorBrutoEstimado"
-                  placeholder="Valor bruto estimado"
-                />
-              </div>
-
-              <div class="col-md-2 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invIrEstimado"
-                  placeholder="IR estimado"
-                />
-              </div>
-
-              <div class="col-md-2 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invValorLiquidoEstimado"
-                  placeholder="Líquido estimado"
-                />
-              </div>
-
-              <div class="col-md-2 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invValorResgatadoReal"
-                  placeholder="Resgatado real"
-                />
+              <div class="col-md-12 mb-2">
+                <input type="text" class="form-control" id="invObs" placeholder="Observações (taxa, carência, nome do produto, etc.)" />
               </div>
             </div>
 
             <div class="form-row">
-              <div class="col-md-10 mb-2">
-                <input
-                  type="text"
-                  class="form-control"
-                  id="invObs"
-                  placeholder="Observações"
-                />
+              <div class="col-md-6 mb-2">
+                <button type="submit" class="btn btn-success btn-block btn-soft">
+                  <i class="bi bi-plus-circle"></i>
+                  Adicionar investimento
+                </button>
               </div>
-
-              <div class="col-md-1 mb-2">
-                <button type="submit" class="btn btn-success btn-block">Salvar</button>
-              </div>
-
-              <div class="col-md-1 mb-2">
-                <button
-                  type="button"
-                  id="cancelInvestmentAdd"
-                  class="btn btn-secondary btn-block"
-                >
+              <div class="col-md-6 mb-2">
+                <button type="button" id="cancelInvestmentAdd" class="btn btn-outline-secondary btn-block btn-soft">
+                  <i class="bi bi-x-circle"></i>
                   Cancelar
                 </button>
               </div>
@@ -1067,7 +1195,7 @@
           </form>
         </div>
 
-        <div class="table-wrap mt-3">
+        <div class="table-wrap">
           <table id="investmentTable" class="display compact" style="width:100%;">
             <thead>
               <tr>
@@ -1080,12 +1208,6 @@
                 <th>DATA VENCIMENTO</th>
                 <th>STATUS</th>
                 <th>LIBERADO</th>
-                <th>TIPO TRIBUTAÇÃO</th>
-                <th>TAXA</th>
-                <th>VALOR BRUTO ESTIMADO</th>
-                <th>IR ESTIMADO</th>
-                <th>VALOR LÍQUIDO ESTIMADO</th>
-                <th>VALOR RESGATADO REAL</th>
                 <th>OBS</th>
               </tr>
             </thead>
@@ -1094,29 +1216,19 @@
         </div>
       </div>
     </section>
-    <div
-      class="modal fade"
-      id="cardLimitsModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="cardLimitsLabel"
-      aria-hidden="true"
-    >
+
+    <div class="hidden-save">
+      <input type="checkbox" id="chkAutoSave" checked />
+      <input type="file" id="fileInput" accept=".csv" style="display:none;" />
+    </div>
+    <!-- Modal Limites de Cartão -->
+    <div class="modal fade" id="cardLimitsModal" tabindex="-1" role="dialog" aria-labelledby="cardLimitsLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="cardLimitsLabel">Limites de Cartão</h5>
-
-            <button id="btnLoadLimits" class="btn btn-warning btn-sm" type="button">
-              Carregar do Sheets
-            </button>
-
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Fechar"
-            >
+            <button id="btnLoadLimits" class="btn btn-warning btn-sm" type="button">Carregar do Sheets</button>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -1125,69 +1237,41 @@
             <div class="limit-row-card mb-3">
               <div class="form-row">
                 <div class="col-md-4 mb-2">
-                  <label>Escolher (dos lançamentos)</label>
+                  <label>Escolher dos lançamentos</label>
                   <select class="form-control" id="limitLaunchCard">
-                    <option value="">Selecionar...</option>
+                    <option value="">(Selecionar...)</option>
                   </select>
                   <small class="text-muted">
-                    Escolha um texto que aparece no campo CARTÃO dos lançamentos (ex.: BTG).
+                    Escolha um texto que aparece no campo CARTÃO dos lançamentos, ex.: BTG.
                   </small>
                 </div>
 
                 <div class="col-md-4 mb-2">
                   <label>Banco</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="limitBank"
-                    placeholder="Ex.: BTG Pactual"
-                  />
+                  <input type="text" class="form-control" id="limitBank" placeholder="Ex.: BTG Pactual" />
                 </div>
 
                 <div class="col-md-4 mb-2">
                   <label>Bandeira</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="limitBrand"
-                    placeholder="Ex.: Mastercard"
-                  />
+                  <input type="text" class="form-control" id="limitBrand" placeholder="Ex.: Mastercard" />
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="col-md-4 mb-2">
                   <label>Categoria</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="limitCategory"
-                    placeholder="Ex.: BLACK, GOLD, PLATINIUM"
-                  />
+                  <input type="text" class="form-control" id="limitCategory" placeholder="Ex.: BLACK, GOLD, PLATINIUM" />
                 </div>
 
                 <div class="col-md-4 mb-2">
                   <label>Limite total</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="limitTotal"
-                    placeholder="Ex.: 4500"
-                  />
+                  <input type="text" class="form-control" id="limitTotal" placeholder="Ex.: 4500" />
                 </div>
 
                 <div class="col-md-4 mb-2 d-flex align-items-end">
                   <div class="w-100">
-                    <button class="btn btn-dark btn-block" id="btnSaveLimit" type="button">
-                      Salvar / Atualizar
-                    </button>
-                    <button
-                      class="btn btn-outline-secondary btn-block mt-2"
-                      id="btnClearLimit"
-                      type="button"
-                    >
-                      Limpar
-                    </button>
+                    <button class="btn btn-dark btn-block" id="btnSaveLimit" type="button">Salvar / Atualizar</button>
+                    <button class="btn btn-outline-secondary btn-block mt-2" id="btnClearLimit" type="button">Limpar</button>
                   </div>
                 </div>
               </div>
@@ -1199,10 +1283,10 @@
                     type="text"
                     class="form-control"
                     id="limitAliases"
-                    placeholder="Ex.: BTG, BTG PACTUAL (separar por vírgula)"
+                    placeholder="Ex.: BTG; BTG PACTUAL; BTG BLACK"
                   />
                   <small class="text-muted">
-                    O sistema soma “Em aberto” considerando todos esses textos como o mesmo cartão.
+                    O sistema soma Em aberto considerando todos esses textos como o mesmo cartão.
                   </small>
                 </div>
               </div>
@@ -1210,14 +1294,10 @@
 
             <div class="d-flex justify-content-between align-items-center mb-2" style="gap:10px;">
               <div class="text-muted">
-                Você pode “Ocultar” itens como <strong>Débitos</strong> e <strong>Depósitos</strong>
-                para não aparecerem aqui, sem alterar lançamentos.
+                Você pode ocultar itens como <strong>Débitos</strong> e <strong>Depósitos</strong> para não aparecerem aqui, sem alterar lançamentos.
               </div>
-
               <div>
-                <button class="btn btn-outline-secondary btn-sm" id="btnShowHidden" type="button">
-                  Mostrar ocultos
-                </button>
+                <button class="btn btn-outline-secondary btn-sm" id="btnShowHidden" type="button">Mostrar ocultos</button>
               </div>
             </div>
 
@@ -1238,33 +1318,19 @@
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Fechar
-            </button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div
-      class="modal fade"
-      id="monthlyReportModal"
-      tabindex="-1"
-      role="dialog"
-      aria-labelledby="monthlyReportLabel"
-      aria-hidden="true"
-    >
+    <!-- Modal Relatórios Mensais -->
+    <div class="modal fade" id="monthlyReportModal" tabindex="-1" role="dialog" aria-labelledby="monthlyReportLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="monthlyReportLabel">Relatórios Mensais Financeiros</h5>
-
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Fechar"
-            >
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -1277,7 +1343,7 @@
               </div>
 
               <div class="col-md-4 mb-3">
-                <label for="recipientSelect">Quem Recebe</label>
+                <label for="recipientSelect">Quem recebe</label>
                 <select id="recipientSelect" class="form-control">
                   <option value="Todos">Todos</option>
                 </select>
@@ -1293,7 +1359,7 @@
 
             <div class="card mt-3">
               <div class="card-body">
-                <h5>Resumo do Período Filtrado</h5>
+                <h5>Resumo do período filtrado</h5>
                 <div class="row text-center">
                   <div class="col-md-4">
                     Total Geral <strong id="reportTotalGeral">R$ 0,00</strong>
@@ -1328,1288 +1394,778 @@
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-primary" id="btnPrintReport">
-              Imprimir
-            </button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-              Fechar
-            </button>
+            <button type="button" class="btn btn-outline-primary" id="btnPrintReport">Imprimir</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
-    const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
+<script>
+  const CLIENT_ID = "749047478128-8mh27i6lmrbljkn0b7i2u9p8q28i8t63.apps.googleusercontent.com";
+  const SPREADSHEET_ID = "1CMaWjOpN45pjtMYAs9hfn0ovFvhXPaiZNbwDnzNSuZA";
 
-    const SHEET_NAME = "Sheet1";
-    const CARD_LIMITS_SHEET_NAME = "CardLimits";
-    const INVESTMENTS_SHEET_NAME = "Investimentos";
+  const SHEET_NAME = "Sheet1";
+  const CARD_LIMITS_SHEET_NAME = "CardLimits";
+  const INVESTMENTS_SHEET_NAME = "Investimentos";
 
-    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+  const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
 
-    const HEADERS = [
-      "DATA COMPRA",
-      "VALORES A RECEBER",
-      "DESCRIÇÃO",
-      "LOJA",
-      "VALOR TOTAL",
-      "CARTÃO",
-      "TOTAL PARCELAS",
-      "PARCELA",
-      "VALOR PARCELA",
-      "DATA PAGTO",
-      "STATUS"
-    ];
+  const HEADERS = [
+    "DATA COMPRA",
+    "VALORES A RECEBER",
+    "DESCRIÇÃO",
+    "LOJA",
+    "VALOR TOTAL",
+    "CARTÃO",
+    "TOTAL PARCELAS",
+    "PARCELA",
+    "VALOR PARCELA",
+    "DATA PAGTO",
+    "STATUS"
+  ];
 
-    const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
-    const WRITE_START_A1 = `${SHEET_NAME}!A1`;
+  const INVESTMENT_HEADERS = [
+    "id",
+    "DATA INVESTIMENTO",
+    "BANCO",
+    "TIPO",
+    "VALOR APLICADO",
+    "PRAZO DIAS",
+    "DATA VENCIMENTO",
+    "STATUS",
+    "LIBERADO",
+    "OBS"
+  ];
 
-    const CARD_LIMITS_RANGE = `${CARD_LIMITS_SHEET_NAME}!A:H`;
-    const CARD_LIMITS_WRITE_START = `${CARD_LIMITS_SHEET_NAME}!A1`;
+  const DATA_RANGE_A1 = `${SHEET_NAME}!A:K`;
+  const WRITE_START_A1 = `${SHEET_NAME}!A1`;
 
-    const LS_LIMITS_KEY = "cfdayerre_card_limits_v3";
+  const CARD_LIMITS_RANGE = `${CARD_LIMITS_SHEET_NAME}!A:H`;
+  const CARD_LIMITS_WRITE_START = `${CARD_LIMITS_SHEET_NAME}!A1`;
 
-    const INVESTMENTS_HEADERS = [
-      "id",
-      "DATA INVESTIMENTO",
-      "BANCO",
-      "TIPO",
-      "VALOR APLICADO",
-      "PRAZO DIAS",
-      "DATA VENCIMENTO",
-      "STATUS",
-      "LIBERADO",
-      "TIPO TRIBUTAÇÃO",
-      "TAXA",
-      "VALOR BRUTO ESTIMADO",
-      "IR ESTIMADO",
-      "VALOR LÍQUIDO ESTIMADO",
-      "VALOR RESGATADO REAL",
-      "OBS"
-    ];
+  const INVESTMENTS_RANGE = `${INVESTMENTS_SHEET_NAME}!A:J`;
+  const INVESTMENTS_WRITE_START = `${INVESTMENTS_SHEET_NAME}!A1`;
 
-    const INVESTMENTS_RANGE = `${INVESTMENTS_SHEET_NAME}!A:P`;
-    const INVESTMENTS_WRITE_START = `${INVESTMENTS_SHEET_NAME}!A1`;
+  const LS_LIMITS_KEY = "cf_dayerre_card_limits_v3";
+  const LS_INVESTMENTS_KEY = "cf_dayerre_investments_v1";
 
-    let cardLimits = [];
-    let showHidden = false;
+  let cardLimits = [];
+  let investmentData = [];
 
-    let tokenClient = null;
-    let gapiInited = false;
-    let gisInited = false;
-    let hasToken = false;
+  let showHidden = false;
+  let tokenClient = null;
+  let gapiInited = false;
+  let gisInited = false;
+  let hasToken = false;
 
-    let summaryYearValue = "";
-    let summaryRecipientValue = "";
-    let summaryValuesHidden = false;
+  let summaryYearValue = "";
+  let summaryRecipientValue = "";
+  let summaryValuesHidden = false;
 
-    let tableData = [];
-    let dataTable = null;
-    let monthlyReportTable = null;
+  let launchPayMonthValue = "";
+  let launchCardValue = "";
+  let launchRecipientValue = "";
 
-    let investmentData = [];
-    let investmentTable = null;
-    let investmentOnlyExpired = false;
+  let investmentBankValue = "";
+  let investmentTypeValue = "";
+  let investmentStatusValue = "";
+  let investmentReleasedValue = "";
 
-    let launchPayMonthValue = "";
-    function formatMoneyBR(num) {
-      if (isNaN(num) || num === null) return "R$ 0,00";
-      return "R$ " + Number(num).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
+  let tableData = [];
+  let dataTable = null;
+  let monthlyReportTable = null;
+  let investmentTable = null;
+
+  let isSaving = false;
+
+  function formatMoneyBR(num) {
+    if (isNaN(num) || num === null) return "R$ 0,00";
+    return "R$ " + Number(num).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function parseMoneyBR(str) {
+    if (str === null || str === undefined) return 0;
+    const cleaned = String(str)
+      .replace(/\s/g, "")
+      .replace(/R\$/i, "")
+      .replace(/[^0-9,.-]/g, "");
+
+    if (!cleaned) return 0;
+
+    if (cleaned.includes(",")) {
+      return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
     }
 
-    function parseMoneyBR(str) {
-      if (str === null || str === undefined) return 0;
-      const cleaned = String(str)
-        .replace(/\s/g, "")
-        .replace(/^R\$/i, "")
-        .replace(/[^0-9,.-]/g, "");
-      if (!cleaned) return 0;
-      if (cleaned.includes(",")) {
-        return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
-      }
-      return parseFloat(cleaned) || 0;
+    return parseFloat(cleaned) || 0;
+  }
+
+  function parseDateBR(s) {
+    if (!s) return null;
+    const [d, m, y] = String(s).split("/");
+    return y && m && d ? new Date(Number(y), Number(m) - 1, Number(d)) : null;
+  }
+
+  function formatDateBR(date) {
+    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    return `${d}/${m}/${date.getFullYear()}`;
+  }
+
+  function addMonthsToDateBR(s, months) {
+    const d = parseDateBR(s);
+    if (!d) return s;
+    d.setMonth(d.getMonth() + months);
+    return formatDateBR(d);
+  }
+
+  function addDaysToDateBR(s, days) {
+    const d = parseDateBR(s);
+    if (!d) return "";
+    d.setDate(d.getDate() + Number(days || 0));
+    return formatDateBR(d);
+  }
+
+  function isTruthyCell(v) {
+    return ["TRUE", "true", "1", "SIM", "sim", "yes", "Y"].includes(String(v || "").trim());
+  }
+
+  function setSheetsStatus(text, kind) {
+    const el = document.getElementById("sheetsStatus");
+    if (!el) return;
+
+    el.textContent = text;
+    el.classList.remove("bg-light", "bg-success", "bg-warning", "bg-danger", "text-secondary", "text-dark", "text-white");
+
+    if (kind === "ok") el.classList.add("bg-success", "text-white");
+    else if (kind === "warn") el.classList.add("bg-warning", "text-dark");
+    else if (kind === "err") el.classList.add("bg-danger", "text-white");
+    else el.classList.add("bg-light", "text-secondary");
+  }
+
+  function normalizeRow(r) {
+    return {
+      "DATA COMPRA": String(r["DATA COMPRA"] || "").trim(),
+      "VALORES A RECEBER": String(r["VALORES A RECEBER"] || "").trim(),
+      "DESCRIÇÃO": String(r["DESCRIÇÃO"] || "").trim(),
+      "LOJA": String(r["LOJA"] || "").trim(),
+      "VALOR TOTAL": formatMoneyBR(parseMoneyBR(r["VALOR TOTAL"] || 0)),
+      "CARTÃO": String(r["CARTÃO"] || "").trim(),
+      "TOTAL PARCELAS": parseInt(r["TOTAL PARCELAS"] || 1) || 1,
+      "PARCELA": parseInt(r["PARCELA"] || 1) || 1,
+      "VALOR PARCELA": formatMoneyBR(parseMoneyBR(r["VALOR PARCELA"] || 0)),
+      "DATA PAGTO": String(r["DATA PAGTO"] || "").trim(),
+      "STATUS": String(r["STATUS"] || "Em aberto").trim() || "Em aberto"
+    };
+  }
+
+  function normalizeInvestmentRow(r) {
+    const dataInvestimento = String(r["DATA INVESTIMENTO"] || "").trim();
+    const prazoDias = parseInt(r["PRAZO DIAS"] || 0) || 0;
+    let dataVencimento = String(r["DATA VENCIMENTO"] || "").trim();
+
+    if (!dataVencimento && dataInvestimento && prazoDias > 0) {
+      dataVencimento = addDaysToDateBR(dataInvestimento, prazoDias);
     }
 
-    function parseDateBR(s) {
-      if (!s) return null;
-      const [d, m, y] = String(s).split("/");
-      return y && m && d ? new Date(y, m - 1, d) : null;
+    let status = String(r["STATUS"] || "Ativo").trim() || "Ativo";
+    const liberado = isTruthyCell(r["LIBERADO"]) ? "TRUE" : "FALSE";
+
+    const venc = parseDateBR(dataVencimento);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    if (status === "Ativo" && venc && venc <= hoje && liberado !== "TRUE") {
+      status = "Vencido";
     }
 
-    function formatDateBR(date) {
-      const d = String(date.getDate()).padStart(2, "0");
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      return `${d}/${m}/${date.getFullYear()}`;
+    return {
+      id: String(r.id || r["id"] || Date.now() + Math.random()).trim(),
+      "DATA INVESTIMENTO": dataInvestimento,
+      "BANCO": String(r["BANCO"] || "").trim(),
+      "TIPO": String(r["TIPO"] || "").trim().toUpperCase(),
+      "VALOR APLICADO": formatMoneyBR(parseMoneyBR(r["VALOR APLICADO"] || 0)),
+      "PRAZO DIAS": prazoDias,
+      "DATA VENCIMENTO": dataVencimento,
+      "STATUS": status,
+      "LIBERADO": liberado,
+      "OBS": String(r["OBS"] || "").trim()
+    };
+  }
+
+  function parseAliases(s) {
+    return Array.from(
+      new Set(
+        String(s || "")
+          .split(";")
+          .map(x => x.trim())
+          .filter(Boolean)
+      )
+    );
+  }
+
+  function toggleSummaryPanel(force) {
+    const content = $("#summaryContent");
+    const btn = $("#btnToggleSummaryPanel");
+
+    const shouldOpen = typeof force === "boolean"
+      ? force
+      : !content.hasClass("open");
+
+    content.toggleClass("open", shouldOpen);
+    btn.attr("aria-expanded", shouldOpen ? "true" : "false");
+  }
+
+  function toggleInvestmentPanel(force) {
+    const shell = $("#investmentShell");
+    const shouldOpen = typeof force === "boolean"
+      ? force
+      : !shell.hasClass("active");
+
+    shell.toggleClass("active", shouldOpen);
+    if (shouldOpen && investmentTable) {
+      setTimeout(() => investmentTable.columns.adjust().draw(false), 100);
     }
+  }
 
-    function addMonthsToDateBR(s, months) {
-      const d = parseDateBR(s);
-      if (!d) return s;
-      d.setMonth(d.getMonth() + months);
-      return formatDateBR(d);
+  function triggerAutoSave() {
+    if ($("#chkAutoSave").prop("checked")) {
+      return saveAllToSheets(true);
     }
+    return Promise.resolve();
+  }
 
-    function setSheetsStatus(text, kind) {
-      const el = document.getElementById("sheetsStatus");
-      if (!el) return;
-      el.textContent = text;
-      el.classList.remove(
-        "bg-light",
-        "bg-success",
-        "bg-warning",
-        "bg-danger",
-        "text-secondary",
-        "text-dark",
-        "text-white"
-      );
+  $.fn.dataTable.ext.search.push(function (settings, data) {
+    if (!dataTable || settings.nTable !== dataTable.table().node()) return true;
 
-      if (kind === "ok") el.classList.add("bg-success", "text-white");
-      else if (kind === "warn") el.classList.add("bg-warning", "text-dark");
-      else if (kind === "err") el.classList.add("bg-danger", "text-white");
-      else el.classList.add("bg-light", "text-secondary");
-    }
+    const rowRecipient = String(data[2] || "").trim();
+    const rowCard = String(data[6] || "").trim();
+    const dateStr = String(data[10] || "").trim();
+    const dt = parseDateBR(dateStr);
 
-    function normalizeRow(r) {
-      return {
-        "DATA COMPRA": String(r["DATA COMPRA"] || "").trim(),
-        "VALORES A RECEBER": String(r["VALORES A RECEBER"] || "").trim(),
-        "DESCRIÇÃO": String(r["DESCRIÇÃO"] || "").trim(),
-        "LOJA": String(r["LOJA"] || "").trim(),
-        "VALOR TOTAL": formatMoneyBR(parseMoneyBR(r["VALOR TOTAL"] || 0)),
-        "CARTÃO": String(r["CARTÃO"] || "").trim(),
-        "TOTAL PARCELAS": parseInt(r["TOTAL PARCELAS"] || 1, 10) || 1,
-        "PARCELA": parseInt(r["PARCELA"] || 1, 10) || 1,
-        "VALOR PARCELA": formatMoneyBR(parseMoneyBR(r["VALOR PARCELA"] || 0)),
-        "DATA PAGTO": String(r["DATA PAGTO"] || "").trim(),
-        "STATUS": String(r["STATUS"] || "Em aberto").trim() || "Em aberto"
-      };
-    }
+    if (launchRecipientValue && rowRecipient !== launchRecipientValue) return false;
+    if (launchCardValue && rowCard !== launchCardValue) return false;
 
-    function refreshLaunchCardFilterOptions() {
-      const sel = $("#launchCardFilter");
-      if (!sel.length) return;
-
-      const cards = Array.from(
-        new Set(
-          tableData
-            .map(r => String(r["CARTÃO"] || "").trim())
-            .filter(Boolean)
-        )
-      ).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-
-      const current = sel.val();
-      sel.empty().append('<option value="">Cartão: Todos</option>');
-      cards.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
-      sel.val(current);
-    }
-
-    function bindLaunchFiltersEvents() {
-      $("#launchCardFilter").off("change").on("change", function () {
-        const v = this.value.trim();
-        if (!dataTable) return;
-        dataTable.column(6).search(v).draw();
-      });
-
-      $("#launchPayMonthFilter").off("change").on("change", function () {
-        launchPayMonthValue = this.value;
-        if (!dataTable) return;
-        dataTable.draw();
-      });
-
-      $("#btnClearLaunchFilters").off("click").on("click", function () {
-        $("#launchCardFilter").val("");
-        $("#launchPayMonthFilter").val("");
-        launchPayMonthValue = "";
-        if (!dataTable) return;
-        dataTable.column(6).search("").draw();
-      });
-    }
-
-    $.fn.dataTable.ext.search.push(function (settings, data) {
-      if (!dataTable || settings.nTable !== $("#dataTable")[0]) return true;
-      if (!launchPayMonthValue) return true;
-      const dateStr = data[10];
-      const dt = parseDateBR(dateStr);
+    if (launchPayMonthValue) {
       if (!dt) return false;
-      const parts = String(launchPayMonthValue).split("-");
-      if (parts.length !== 2) return true;
-      const y = Number(parts[0]);
-      const mo = Number(parts[1]);
-      return dt.getFullYear() === y && dt.getMonth() + 1 === mo;
+      const [y, mo] = String(launchPayMonthValue).split("-").map(Number);
+      if (dt.getFullYear() !== y || (dt.getMonth() + 1) !== mo) return false;
+    }
+
+    return true;
+  });
+
+  $.fn.dataTable.ext.search.push(function (settings, data) {
+    if (!investmentTable || settings.nTable !== investmentTable.table().node()) return true;
+
+    const bank = String(data[2] || "").trim();
+    const type = String(data[3] || "").trim();
+    const status = String(data[7] || "").trim();
+    const liberado = String(data[8] || "").trim();
+
+    if (investmentBankValue && bank !== investmentBankValue) return false;
+    if (investmentTypeValue && type !== investmentTypeValue) return false;
+    if (investmentStatusValue && status !== investmentStatusValue) return false;
+    if (investmentReleasedValue && liberado !== investmentReleasedValue) return false;
+
+    return true;
+  });
+
+  function refreshLaunchFiltersOptions() {
+    const recipientSel = $("#launchRecipientFilter");
+    const cardSel = $("#launchCardFilter");
+
+    const recipients = Array.from(new Set(
+      tableData.map(r => (r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const cards = Array.from(new Set(
+      tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const recipientCurrent = recipientSel.val() || "";
+    const cardCurrent = cardSel.val() || "";
+
+    recipientSel.empty().append(`<option value="">Recebedor: Todos</option>`);
+    recipients.forEach(v => recipientSel.append(`<option value="${v}">${v}</option>`));
+    recipientSel.val(recipientCurrent);
+
+    cardSel.empty().append(`<option value="">Cartão: Todos</option>`);
+    cards.forEach(v => cardSel.append(`<option value="${v}">${v}</option>`));
+    cardSel.val(cardCurrent);
+  }
+
+  function refreshInvestmentFiltersOptions() {
+    const bankSel = $("#investmentBankFilter");
+    const typeSel = $("#investmentTypeFilter");
+
+    const banks = Array.from(new Set(
+      investmentData.map(r => (r["BANCO"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const types = Array.from(new Set(
+      investmentData.map(r => (r["TIPO"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const bankCurrent = bankSel.val() || "";
+    const typeCurrent = typeSel.val() || "";
+
+    bankSel.empty().append(`<option value="">Banco: Todos</option>`);
+    banks.forEach(v => bankSel.append(`<option value="${v}">${v}</option>`));
+    bankSel.val(bankCurrent);
+
+    typeSel.empty().append(`<option value="">Tipo: Todos</option>`);
+    types.forEach(v => typeSel.append(`<option value="${v}">${v}</option>`));
+    typeSel.val(typeCurrent);
+  }
+
+  function updateAutoCompleteOptions() {
+    const receberSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
+    const cartaoSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+    const lojaSet = new Set(tableData.map(r => r["LOJA"]).filter(Boolean));
+    const aliasSet = new Set(cardLimits.flatMap(c => c.aliases || []).filter(Boolean));
+    const bankSet = new Set(investmentData.map(r => r["BANCO"]).filter(Boolean));
+
+    $("#receberOptions").html(Array.from(receberSet).sort().map(v => `<option value="${v}"></option>`).join(""));
+    $("#lojaOptions").html(Array.from(lojaSet).sort().map(v => `<option value="${v}"></option>`).join(""));
+    $("#cartaoOptions").html(Array.from(new Set([...cartaoSet, ...aliasSet])).sort().map(v => `<option value="${v}"></option>`).join(""));
+    $("#investmentBankOptions").html(Array.from(bankSet).sort().map(v => `<option value="${v}"></option>`).join(""));
+
+    refreshLaunchFiltersOptions();
+    refreshInvestmentFiltersOptions();
+  }
+
+  function updateDashboard() {
+    let totalG = 0;
+    let pago = 0;
+    let apagar = 0;
+    let hasOverdue = false;
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const year = summaryYearValue ? Number(summaryYearValue) : null;
+    const recipient = summaryRecipientValue || null;
+
+    tableData.forEach(r => {
+      const dt = parseDateBR(r["DATA PAGTO"]);
+      if (!dt) return;
+
+      if (year !== null && dt.getFullYear() !== year) return;
+      if (recipient !== null && (r["VALORES A RECEBER"] || "").trim() !== recipient) return;
+
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      totalG += v;
+
+      const status = (r["STATUS"] || "").trim();
+      if (status === "Pago") pago += v;
+      else apagar += v;
+
+      if (status !== "Pago" && dt < now) hasOverdue = true;
     });
 
-    function updateAutoCompleteOptions() {
-      const receberSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
-      const cartaoSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
-      const lojaSet = new Set(tableData.map(r => r["LOJA"]).filter(Boolean));
+    $("#totalGeral").text(summaryValuesHidden ? "••••••" : formatMoneyBR(totalG));
+    $("#totalPago").text(summaryValuesHidden ? "••••••" : formatMoneyBR(pago));
+    $("#totalAPagar").text(summaryValuesHidden ? "••••••" : formatMoneyBR(apagar));
+    $("#overdueAlert").toggle(hasOverdue);
 
-      $("#receberOptions").html(
-        Array.from(receberSet).sort().map(v => `<option value="${v}"></option>`).join("")
-      );
-      $("#lojaOptions").html(
-        Array.from(lojaSet).sort().map(v => `<option value="${v}"></option>`).join("")
-      );
-
-      const aliasSet = new Set(cardLimits.flatMap(c => c.aliases || []).filter(Boolean));
-      const merged = new Set([...cartaoSet, ...aliasSet]);
-
-      $("#cartaoOptions").html(
-        Array.from(merged).sort().map(v => `<option value="${v}"></option>`).join("")
-      );
-
-      refreshLaunchCardFilterOptions();
-      refreshSummaryYearOptions();
-      refreshSummaryRecipientOptions();
-      refreshInvestmentFilterOptions();
+    if ($("#cardLimitsModal").hasClass("show")) {
+      renderCardLimitsTable();
     }
+  }
 
-    function updateDashboard() {
-      let totalG = 0;
-      let pago = 0;
-      let apagar = 0;
-      let hasOverdue = false;
+  function updateInvestmentDashboard() {
+    let totalApplied = 0;
+    let totalMaturing = 0;
+    let totalReleased = 0;
+    let hasReleasedAlert = false;
 
-      const now = new Date();
-      const year = summaryYearValue ? Number(summaryYearValue) : null;
-      const recipient = summaryRecipientValue || null;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
 
-      tableData.forEach(r => {
-        const dt = parseDateBR(r["DATA PAGTO"]);
-        if (!dt) return;
-        if (year !== null && dt.getFullYear() !== year) return;
-        if (recipient !== null && String(r["VALORES A RECEBER"]).trim() !== recipient) return;
+    investmentData.forEach(r => {
+      totalApplied += parseMoneyBR(r["VALOR APLICADO"]);
 
-        const v = parseMoneyBR(r["VALOR PARCELA"]);
-        totalG += v;
+      const venc = parseDateBR(r["DATA VENCIMENTO"]);
+      const liberado = String(r["LIBERADO"] || "").trim() === "TRUE";
+      const status = String(r["STATUS"] || "").trim();
 
-        const status = String(r["STATUS"]).trim();
-        if (status === "Pago") pago += v;
-        else {
-          apagar += v;
-          if (dt < now) hasOverdue = true;
-        }
-      });
-
-      if (summaryValuesHidden) {
-        $("#totalGeral").text("••••••");
-        $("#totalPago").text("••••••");
-        $("#totalAPagar").text("••••••");
-      } else {
-        $("#totalGeral").text(formatMoneyBR(totalG));
-        $("#totalPago").text(formatMoneyBR(pago));
-        $("#totalAPagar").text(formatMoneyBR(apagar));
+      if (status === "Vencido" || (venc && venc <= now && !liberado)) {
+        totalMaturing += 1;
+        hasReleasedAlert = true;
       }
 
-      $("#overdueAlert").toggle(hasOverdue);
+      if (liberado) totalReleased += 1;
+    });
 
-      if ($("#cardLimitsModal").hasClass("show")) renderCardLimitsTable();
-    }
+    $("#investmentTotalApplied").text(formatMoneyBR(totalApplied));
+    $("#investmentTotalMaturing").text(String(totalMaturing));
+    $("#investmentTotalReleased").text(String(totalReleased));
+    $("#investmentOverdueAlert").toggle(hasReleasedAlert);
+  }
 
-    function initTable() {
-      if ($.fn.DataTable.isDataTable("#dataTable")) {
-        $("#dataTable").DataTable().destroy();
-      }
+  function initTable() {
+    if (dataTable) dataTable.destroy();
 
-      dataTable = $("#dataTable").DataTable({
-        data: tableData,
-        columns: [
-          {
-            data: null,
-            orderable: false,
-            render: () => '<input type="checkbox" class="row-checkbox" />'
-          },
-          { data: "DATA COMPRA", type: "date-eu", className: "edit-cell" },
-          { data: "VALORES A RECEBER", className: "edit-cell" },
-          { data: "DESCRIÇÃO", className: "edit-cell" },
-          { data: "LOJA", className: "edit-cell" },
-          {
-            data: "VALOR TOTAL",
-            render: d => formatMoneyBR(parseMoneyBR(d)),
-            className: "edit-cell money-cell"
-          },
-          { data: "CARTÃO", className: "edit-cell" },
-          { data: "TOTAL PARCELAS", className: "edit-cell text-center" },
-          { data: "PARCELA", className: "edit-cell text-center" },
-          {
-            data: "VALOR PARCELA",
-            render: d => formatMoneyBR(parseMoneyBR(d)),
-            className: "edit-cell money-cell"
-          },
-          { data: "DATA PAGTO", className: "edit-cell" },
-          { data: "STATUS", className: "edit-cell" }
-        ],
-        order: [[1, "desc"]],
-        pageLength: 20,
-        lengthMenu: [20, 40, 60, 80, 100, 200, -1],
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+    dataTable = $("#dataTable").DataTable({
+      data: tableData,
+      columns: [
+        {
+          data: null,
+          orderable: false,
+          render: () => `<input type="checkbox" class="row-checkbox" />`
         },
-        scrollX: true
-      });
+        { data: "DATA COMPRA", type: "date-eu", className: "edit-cell" },
+        { data: "VALORES A RECEBER", className: "edit-cell" },
+        { data: "DESCRIÇÃO", className: "edit-cell" },
+        { data: "LOJA", className: "edit-cell" },
+        {
+          data: "VALOR TOTAL",
+          render: d => formatMoneyBR(parseMoneyBR(d)),
+          className: "edit-cell money-cell"
+        },
+        { data: "CARTÃO", className: "edit-cell" },
+        { data: "TOTAL PARCELAS", className: "edit-cell text-center" },
+        { data: "PARCELA", className: "edit-cell text-center" },
+        {
+          data: "VALOR PARCELA",
+          render: d => formatMoneyBR(parseMoneyBR(d)),
+          className: "edit-cell money-cell"
+        },
+        { data: "DATA PAGTO", className: "edit-cell" },
+        { data: "STATUS", className: "edit-cell" }
+      ],
+      order: [[1, "desc"]],
+      pageLength: 20,
+      lengthMenu: [20, 40, 60, 80, 100, 200, -1],
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
+      scrollX: true,
+      autoWidth: false
+    });
 
-      bindLaunchFiltersEvents();
+    dataTable.draw(false);
+    bindLaunchFiltersEvents();
 
-      $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
-        const cell = dataTable.cell(this);
-        const field = dataTable.column(cell.index().column).header().textContent.trim();
-        const oldVal = cell.data();
-        const input = $(
-          `<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}">`
-        );
+    $("#dataTable tbody").off("click").on("click", "td.edit-cell", function () {
+      const cell = dataTable.cell(this);
+      const field = $(dataTable.column(cell.index().column).header()).text().trim();
+      const oldVal = cell.data();
 
-        $(this).html(input);
-        input.focus().select();
+      const input = $(`<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}" />`);
+      $(this).html(input);
+      input.focus().select();
 
-        input.on("blur", async function () {
-          let newVal = input.val().trim();
+      input.on("blur", async function () {
+        let newVal = input.val().trim();
 
-          if (field.includes("VALOR")) newVal = formatMoneyBR(parseMoneyBR(newVal));
-          else if (field.includes("TOTAL PARCELAS") || field === "PARCELA") {
-            newVal = parseInt(newVal || 0, 10) || 0;
-          }
+        if (field.includes("VALOR")) newVal = formatMoneyBR(parseMoneyBR(newVal));
+        else if (field.includes("TOTAL PARCELAS") || field === "PARCELA") newVal = parseInt(newVal) || 0;
 
-          cell.data(newVal).draw(false);
+        cell.data(newVal).draw(false);
 
-          const rowIdx = cell.index().row;
+        const rowIdx = cell.index().row;
+        if (tableData[rowIdx]) {
           tableData[rowIdx][field] = newVal;
           tableData[rowIdx] = normalizeRow(tableData[rowIdx]);
-
-          updateDashboard();
-          updateAutoCompleteOptions();
-
-          if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
-        });
-
-        input.on("keypress", function (e) {
-          if (e.which === 13) input.blur();
-        });
-      });
-
-      $("#selectAll").off("change").on("change", function () {
-        $(".row-checkbox").prop("checked", this.checked);
-      });
-    }
-
-    function refreshSummaryYearOptions() {
-      const sel = $("#summaryYearFilter");
-      if (!sel.length) return;
-
-      const years = Array.from(
-        new Set(
-          tableData
-            .map(r => parseDateBR(r["DATA PAGTO"])?.getFullYear())
-            .filter(Boolean)
-        )
-      ).sort((a, b) => b - a);
-
-      const current = sel.val();
-      sel.empty().append('<option value="">Ano: Todos</option>');
-      years.forEach(y => sel.append(`<option value="${y}">${y}</option>`));
-      sel.val(current);
-    }
-
-    function refreshSummaryRecipientOptions() {
-      const sel = $("#summaryRecipientFilter");
-      if (!sel.length) return;
-
-      const recs = Array.from(
-        new Set(
-          tableData.map(r => String(r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
-        )
-      ).sort();
-
-      const current = sel.val();
-      sel.empty().append('<option value="">Recebedor: Todos</option>');
-      recs.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
-      sel.val(current);
-    }
-
-    function parseAliases(s) {
-      return Array.from(
-        new Set(
-          String(s || "")
-            .split(",")
-            .map(x => x.trim())
-            .filter(Boolean)
-        )
-      );
-    }
-
-    function getUniqueLaunchCards() {
-      return Array.from(
-        new Set(tableData.map(r => String(r["CARTÃO"] || "").trim()).filter(Boolean))
-      ).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-    }
-
-    function sumOpenByLaunchCardText() {
-      return tableData.reduce((acc, r) => {
-        const card = String(r["CARTÃO"] || "").trim();
-        if (!card) return acc;
-        const st = String(r["STATUS"] || "").trim();
-        if (st === "Pago") return acc;
-        const v = parseMoneyBR(r["VALOR PARCELA"]);
-        acc[card] = (acc[card] || 0) + v;
-        return acc;
-      }, {});
-    }
-
-    function sumOpenForLimitItem(item, openMap) {
-      const aliases = (item.aliases || []).map(x => String(x).trim()).filter(Boolean);
-      if (aliases.length === 0) return 0;
-      return aliases.reduce((sum, a) => sum + (openMap[a] || 0), 0);
-    }
-
-    function clearLimitForm() {
-      $("#limitLaunchCard").val("");
-      $("#limitBank").val("");
-      $("#limitBrand").val("");
-      $("#limitCategory").val("");
-      $("#limitTotal").val("");
-      $("#limitAliases").val("");
-      $("#btnSaveLimit").data("editId", "");
-    }
-
-    function fillLaunchCardSelect() {
-      const sel = $("#limitLaunchCard");
-      const current = sel.val();
-      sel.empty().append('<option value="">Selecionar...</option>');
-      getUniqueLaunchCards().forEach(c => sel.append(`<option value="${c}">${c}</option>`));
-      sel.val(current);
-    }
-
-    function ensurePlaceholderItemsForLaunchCards() {
-      const launchCards = getUniqueLaunchCards();
-
-      launchCards.forEach(txt => {
-        const exists = cardLimits.some(it => (it.aliases || []).includes(txt));
-        if (!exists) {
-          const already = cardLimits.some(
-            it =>
-              (it.total === null || it.total === undefined) &&
-              (it.aliases || []).length === 1 &&
-              it.aliases[0] === txt
-          );
-          if (!already) {
-            cardLimits.push({
-              id: "ph_" + txt,
-              bank: "",
-              brand: "",
-              category: "",
-              total: null,
-              aliases: [txt],
-              hidden: false,
-              placeholder: true
-            });
-          }
         }
+
+        updateDashboard();
+        updateAutoCompleteOptions();
+        await triggerAutoSave();
       });
-    }
 
-    async function loadCardLimits() {
-      const ok = await ensureAccessToken();
+      input.on("keypress", function (e) {
+        if (e.which === 13) input.blur();
+      });
+    });
 
-      if (ok) {
-        try {
-          const response = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: CARD_LIMITS_RANGE
-          });
+    $("#selectAll").off("change").on("change", function () {
+      $(".row-checkbox").prop("checked", this.checked);
+    });
+  }
 
-          const rows = response.result.values || [];
+  function initInvestmentTable() {
+    if (investmentTable) investmentTable.destroy();
 
-          if (rows.length > 1) {
-            cardLimits = rows.slice(1).map(row => ({
-              id: row[0] || String(Date.now()),
-              bank: row[1] || "",
-              brand: row[2] || "",
-              category: row[3] || "",
-              total: row[4] ? parseMoneyBR(row[4]) : null,
-              aliases: row[5] ? parseAliases(row[5]) : [],
-              hidden: row[6] === "TRUE",
-              placeholder: row[7] === "TRUE"
-            }));
-            localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
-            return;
-          }
-        } catch (err) {
-          console.warn("Falha ao carregar limites do Sheets:", err);
+    investmentTable = $("#investmentTable").DataTable({
+      data: investmentData,
+      columns: [
+        {
+          data: null,
+          orderable: false,
+          render: row => `<input type="checkbox" class="investment-row-checkbox" data-id="${row.id}" />`
+        },
+        { data: "DATA INVESTIMENTO", type: "date-eu", className: "investment-edit-cell" },
+        { data: "BANCO", className: "investment-edit-cell" },
+        { data: "TIPO", className: "investment-edit-cell" },
+        {
+          data: "VALOR APLICADO",
+          render: d => formatMoneyBR(parseMoneyBR(d)),
+          className: "investment-edit-cell money-cell"
+        },
+        { data: "PRAZO DIAS", className: "investment-edit-cell text-center" },
+        { data: "DATA VENCIMENTO", type: "date-eu", className: "investment-edit-cell" },
+        { data: "STATUS", className: "investment-edit-cell text-center" },
+        { data: "LIBERADO", className: "investment-edit-cell text-center" },
+        { data: "OBS", className: "investment-edit-cell" }
+      ],
+      order: [[6, "asc"]],
+      pageLength: 15,
+      lengthMenu: [15, 30, 50, 100, -1],
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
+      scrollX: true,
+      autoWidth: false
+    });
+
+    investmentTable.draw(false);
+    bindInvestmentFiltersEvents();
+
+    $("#investmentTable tbody").off("click").on("click", "td.investment-edit-cell", function () {
+      const cell = investmentTable.cell(this);
+      const field = $(investmentTable.column(cell.index().column).header()).text().trim();
+      const oldVal = cell.data();
+
+      const input = $(`<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}" />`);
+      $(this).html(input);
+      input.focus().select();
+
+      input.on("blur", async function () {
+        let newVal = input.val().trim();
+
+        if (field.includes("VALOR")) newVal = formatMoneyBR(parseMoneyBR(newVal));
+        else if (field === "PRAZO DIAS") newVal = parseInt(newVal) || 0;
+        else if (field === "LIBERADO") newVal = isTruthyCell(newVal) ? "TRUE" : "FALSE";
+        else if (field === "TIPO") newVal = String(newVal).toUpperCase();
+
+        const rowIdx = cell.index().row;
+        if (investmentData[rowIdx]) {
+          investmentData[rowIdx][field] = newVal;
+          investmentData[rowIdx] = normalizeInvestmentRow(investmentData[rowIdx]);
+          cell.data(investmentData[rowIdx][field]).draw(false);
+        } else {
+          cell.data(newVal).draw(false);
         }
-      }
 
+        updateInvestmentDashboard();
+        updateAutoCompleteOptions();
+        await triggerAutoSave();
+      });
+
+      input.on("keypress", function (e) {
+        if (e.which === 13) input.blur();
+      });
+    });
+
+    $("#selectAllInvestments").off("change").on("change", function () {
+      $(".investment-row-checkbox").prop("checked", this.checked);
+    });
+  }
+
+  function bindLaunchFiltersEvents() {
+    $("#launchRecipientFilter").off("change").on("change", function () {
+      launchRecipientValue = this.value.trim();
+      if (!dataTable) return;
+      dataTable.draw();
+    });
+
+    $("#launchCardFilter").off("change").on("change", function () {
+      launchCardValue = this.value.trim();
+      if (!dataTable) return;
+      dataTable.draw();
+    });
+
+    $("#launchPayMonthFilter").off("change").on("change", function () {
+      launchPayMonthValue = this.value;
+      if (!dataTable) return;
+      dataTable.draw();
+    });
+
+    $("#btnClearLaunchFilters").off("click").on("click", function () {
+      launchRecipientValue = "";
+      launchCardValue = "";
+      launchPayMonthValue = "";
+
+      $("#launchRecipientFilter").val("");
+      $("#launchCardFilter").val("");
+      $("#launchPayMonthFilter").val("");
+
+      if (!dataTable) return;
+      dataTable.draw();
+    });
+  }
+
+  function bindInvestmentFiltersEvents() {
+    $("#investmentBankFilter").off("change").on("change", function () {
+      investmentBankValue = this.value.trim();
+      if (!investmentTable) return;
+      investmentTable.draw();
+    });
+
+    $("#investmentTypeFilter").off("change").on("change", function () {
+      investmentTypeValue = this.value.trim();
+      if (!investmentTable) return;
+      investmentTable.draw();
+    });
+
+    $("#investmentStatusFilter").off("change").on("change", function () {
+      investmentStatusValue = this.value.trim();
+      if (!investmentTable) return;
+      investmentTable.draw();
+    });
+
+    $("#investmentReleasedFilter").off("change").on("change", function () {
+      investmentReleasedValue = this.value.trim();
+      if (!investmentTable) return;
+      investmentTable.draw();
+    });
+
+    $("#btnClearInvestmentFilters").off("click").on("click", function () {
+      investmentBankValue = "";
+      investmentTypeValue = "";
+      investmentStatusValue = "";
+      investmentReleasedValue = "";
+
+      $("#investmentBankFilter").val("");
+      $("#investmentTypeFilter").val("");
+      $("#investmentStatusFilter").val("");
+      $("#investmentReleasedFilter").val("");
+
+      if (!investmentTable) return;
+      investmentTable.draw();
+    });
+  }
+
+  function refreshSummaryYearOptions() {
+    const sel = $("#summaryYearFilter");
+    if (sel.length === 0) return;
+
+    const years = Array.from(new Set(
+      tableData.map(r => parseDateBR(r["DATA PAGTO"])?.getFullYear()).filter(Boolean)
+    )).sort((a, b) => b - a);
+
+    const current = sel.val() || "";
+    sel.empty().append('<option value="">Ano: Todos</option>');
+    years.forEach(y => sel.append(`<option value="${y}">${y}</option>`));
+    sel.val(current);
+  }
+
+  function refreshSummaryRecipientOptions() {
+    const sel = $("#summaryRecipientFilter");
+    if (sel.length === 0) return;
+
+    const recs = Array.from(new Set(
+      tableData.map(r => (r["VALORES A RECEBER"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+
+    const current = sel.val() || "";
+    sel.empty().append('<option value="">Recebedor: Todos</option>');
+    recs.forEach(r => sel.append(`<option value="${r}">${r}</option>`));
+    sel.val(current);
+  }
+
+  function getSelectedInvestmentIds() {
+    return $(".investment-row-checkbox:checked").map(function () {
+      return $(this).data("id");
+    }).get();
+  }
+
+  function clearInvestmentForm() {
+    $("#invDataInvestimento").val("");
+    $("#invBanco").val("");
+    $("#invTipo").val("");
+    $("#invValorAplicado").val("");
+    $("#invPrazoDias").val("");
+    $("#invDataVencimento").val("");
+    $("#invStatus").val("Ativo");
+    $("#invLiberado").val("FALSE");
+    $("#invObs").val("");
+  }
+  async function loadCardLimits() {
+    const ok = await ensureAccessToken();
+    if (ok) {
       try {
-        const raw = localStorage.getItem(LS_LIMITS_KEY);
-        cardLimits = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(cardLimits)) cardLimits = [];
-      } catch (e) {
-        cardLimits = [];
-      }
-    }
-
-    async function saveCardLimits() {
-      const ok = await ensureAccessToken();
-
-      if (!ok) {
-        localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
-        return;
-      }
-
-      try {
-        const values = [
-          ["id", "bank", "brand", "category", "total", "aliases", "hidden", "placeholder"],
-          ...cardLimits.map(item => [
-            item.id,
-            item.bank || "",
-            item.brand || "",
-            item.category || "",
-            item.total !== null ? item.total : "",
-            (item.aliases || []).join(", "),
-            item.hidden ? "TRUE" : "FALSE",
-            item.placeholder ? "TRUE" : "FALSE"
-          ])
-        ];
-
-        await gapi.client.sheets.spreadsheets.values.clear({
+        const response = await gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
           range: CARD_LIMITS_RANGE
         });
 
-        await gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: CARD_LIMITS_WRITE_START,
-          valueInputOption: "USER_ENTERED",
-          resource: { values }
-        });
-
-        localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+        const rows = response.result.values || [];
+        if (rows.length > 1) {
+          cardLimits = rows.slice(1).map(row => ({
+            id: row[0] || String(Date.now()),
+            bank: row[1] || "",
+            brand: row[2] || "",
+            category: row[3] || "",
+            total: row[4] ? parseMoneyBR(row[4]) : null,
+            aliases: row[5] ? parseAliases(row[5]) : [],
+            hidden: row[6] === "TRUE",
+            placeholder: row[7] === "TRUE"
+          }));
+          localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+          return;
+        }
       } catch (err) {
-        console.error("Erro ao salvar limites:", err);
-        localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+        console.warn("[CardLimits] Falha ao carregar do Sheets", err);
       }
     }
 
-    function setFormFromItem(item) {
-      $("#limitBank").val(item.bank || "");
-      $("#limitBrand").val(item.brand || "");
-      $("#limitCategory").val(item.category || "");
-      $("#limitTotal").val(item.total !== null ? String(item.total) : "");
-      $("#limitAliases").val((item.aliases || []).join(", "));
-      $("#btnSaveLimit").data("editId", item.id);
+    try {
+      const raw = localStorage.getItem(LS_LIMITS_KEY);
+      cardLimits = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(cardLimits)) cardLimits = [];
+    } catch (e) {
+      cardLimits = [];
+    }
+  }
+
+  async function saveCardLimits() {
+    const ok = await ensureAccessToken();
+    if (!ok) {
+      localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+      return;
     }
 
-    function renderCardLimitsTable() {
-      fillLaunchCardSelect();
-      ensurePlaceholderItemsForLaunchCards();
+    try {
+      const values = [
+        ["id", "bank", "brand", "category", "total", "aliases", "hidden", "placeholder"],
+        ...cardLimits.map(item => [
+          item.id,
+          item.bank || "",
+          item.brand || "",
+          item.category || "",
+          item.total != null ? item.total : "",
+          (item.aliases || []).join("; "),
+          item.hidden ? "TRUE" : "FALSE",
+          item.placeholder ? "TRUE" : "FALSE"
+        ])
+      ];
 
-      const openMap = sumOpenByLaunchCardText();
-      const tbody = $("#limitsTbody");
-      tbody.empty();
-
-      const items = [...cardLimits]
-        .filter(it => (showHidden ? true : !it.hidden))
-        .sort((a, b) => {
-          const aName = a.aliases && a.aliases[0] ? a.aliases[0] : "";
-          const bName = b.aliases && b.aliases[0] ? b.aliases[0] : "";
-          return aName.localeCompare(bName, "pt-BR", { sensitivity: "base" });
-        });
-
-      if (items.length === 0) {
-        tbody.append(
-          '<tr><td colspan="5" class="text-center text-muted">Nenhum item.</td></tr>'
-        );
-        return;
-      }
-
-      items.forEach(item => {
-        const displayName = item.aliases && item.aliases[0] ? item.aliases[0] : "sem nome";
-        const open = sumOpenForLimitItem(item, openMap);
-        const total = item.total === null || item.total === undefined ? null : Number(item.total);
-        const free = total === null ? null : total - open;
-        const hasLimit = total !== null;
-        const freeClass = !hasLimit
-          ? "text-muted"
-          : free < 0
-            ? "text-danger"
-            : free < total * 0.15
-              ? "text-warning"
-              : "text-success";
-
-        const categoryTag = item.category
-          ? `<span class="tag">${String(item.category).toUpperCase()}</span>`
-          : "";
-
-        const hiddenTag = item.hidden
-          ? '<span class="badge badge-secondary ml-2">Oculto</span>'
-          : "";
-
-        const noLimitTag = !hasLimit
-          ? '<span class="badge badge-warning ml-2">Sem limite</span>'
-          : "";
-
-        const aliasesHtml = (item.aliases || [])
-          .slice(0, 6)
-          .map(a => `<span class="tag">${a}</span>`)
-          .join("");
-
-        tbody.append(`
-          <tr>
-            <td>
-              <div>
-                <strong>${displayName}</strong>${hiddenTag}${noLimitTag}
-              </div>
-              <div class="mt-1">${categoryTag}${aliasesHtml}</div>
-              <small class="text-muted">
-                Banco: ${item.bank || "-"} · Bandeira: ${item.brand || "-"}
-              </small>
-            </td>
-            <td class="text-right">${hasLimit ? formatMoneyBR(total) : "-"}</td>
-            <td class="text-right">${formatMoneyBR(open)}</td>
-            <td class="text-right ${freeClass}">
-              ${hasLimit ? `<strong>${formatMoneyBR(free)}</strong>` : "-"}
-            </td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-primary btnEditLimit" type="button" data-id="${item.id}">
-                Editar
-              </button>
-              <button class="btn btn-sm btn-outline-danger btnDeleteLimit" type="button" data-id="${item.id}" ${item.placeholder ? "disabled" : ""}>
-                Excluir
-              </button>
-              <button class="btn btn-sm btn-outline-secondary btnToggleHidden" type="button" data-id="${item.id}">
-                ${item.hidden ? "Reexibir" : "Ocultar"}
-              </button>
-            </td>
-          </tr>
-        `);
-      });
-    }
-
-    async function upsertLimit() {
-      const editId = $("#btnSaveLimit").data("editId");
-      const bank = $("#limitBank").val().trim();
-      const brand = $("#limitBrand").val().trim();
-      const category = $("#limitCategory").val().trim();
-      const totalRaw = $("#limitTotal").val().trim();
-      const total = totalRaw ? parseMoneyBR(totalRaw) : null;
-      const aliases = parseAliases($("#limitAliases").val());
-
-      if (aliases.length === 0) {
-        alert("Informe pelo menos 1 alias.");
-        return;
-      }
-
-      if (total !== null && total < 0) {
-        alert("Limite total inválido.");
-        return;
-      }
-
-      const aliasConflicts = [];
-      aliases.forEach(a => {
-        cardLimits.forEach(it => {
-          if (it.id === editId) return;
-          if (it.total !== null && (it.aliases || []).includes(a)) aliasConflicts.push(a);
-        });
+      await gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId: SPREADSHEET_ID,
+        range: CARD_LIMITS_RANGE
       });
 
-      if (aliasConflicts.length > 0) {
-        alert("Alias já usado em outro cartão com limite: " + aliasConflicts[0]);
-        return;
-      }
-
-      if (editId) {
-        const idx = cardLimits.findIndex(x => x.id === editId);
-        if (idx >= 0) {
-          cardLimits[idx] = {
-            ...cardLimits[idx],
-            bank,
-            brand,
-            category,
-            total,
-            aliases,
-            placeholder: false,
-            hidden: false
-          };
-        }
-      } else {
-        cardLimits.push({
-          id: String(Date.now()),
-          bank,
-          brand,
-          category,
-          total,
-          aliases,
-          hidden: false,
-          placeholder: false
-        });
-      }
-
-      const used = new Set(
-        cardLimits.filter(x => !x.placeholder).flatMap(x => x.aliases || [])
-      );
-      cardLimits = cardLimits.filter(x => !x.placeholder || !used.has(x.aliases[0]));
-
-      await saveCardLimits();
-      updateAutoCompleteOptions();
-      renderCardLimitsTable();
-      clearLimitForm();
-    }
-
-    async function deleteLimit(id) {
-      const item = cardLimits.find(x => x.id === id);
-      if (!item) return;
-      if (!confirm("Excluir este limite?")) return;
-      cardLimits = cardLimits.filter(x => x.id !== id);
-      await saveCardLimits();
-      updateAutoCompleteOptions();
-      renderCardLimitsTable();
-      clearLimitForm();
-    }
-
-    async function toggleHidden(id) {
-      const idx = cardLimits.findIndex(x => x.id === id);
-      if (idx < 0) return;
-      cardLimits[idx].hidden = !cardLimits[idx].hidden;
-      await saveCardLimits();
-      renderCardLimitsTable();
-    }
-
-    function updateReportTotalsFromMonthlyTable() {
-      if (!monthlyReportTable) return;
-
-      let total = 0;
-      let pago = 0;
-      let apagar = 0;
-
-      const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
-      rows.forEach(r => {
-        const v = parseMoneyBR(r["VALOR PARCELA"]);
-        total += v;
-        if (String(r["STATUS"]).trim() === "Pago") pago += v;
-        else apagar += v;
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: CARD_LIMITS_WRITE_START,
+        valueInputOption: "USER_ENTERED",
+        resource: { values }
       });
 
-      $("#reportTotalGeral").text(formatMoneyBR(total));
-      $("#reportTotalPago").text(formatMoneyBR(pago));
-      $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+      localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
+    } catch (err) {
+      console.error("[CardLimits] Erro ao salvar", err);
+      localStorage.setItem(LS_LIMITS_KEY, JSON.stringify(cardLimits));
     }
-
-    function buildMonthlyReportTable() {
-      if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
-        $("#monthlyReportTable").DataTable().destroy();
-      }
-
-      monthlyReportTable = $("#monthlyReportTable").DataTable({
-        data: [],
-        columns: [
-          { data: "DATA COMPRA" },
-          { data: "VALORES A RECEBER" },
-          { data: "DESCRIÇÃO" },
-          { data: "LOJA" },
-          { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)) },
-          { data: "CARTÃO" },
-          {
-            data: null,
-            render: d => `${d["PARCELA"]}/${d["TOTAL PARCELAS"]}`,
-            className: "text-center"
-          },
-          { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)) },
-          { data: "DATA PAGTO" },
-          { data: "STATUS" }
-        ],
-        pageLength: 10,
-        lengthMenu: [10, 25, 50, 100, -1],
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
-        },
-        dom: "frtip",
-        order: [[8, "asc"]],
-        autoWidth: false,
-        deferRender: true
-      });
-
-      $("#monthlyReportTable").on("draw.dt", updateReportTotalsFromMonthlyTable);
-    }
-
-    function loadMonthlyReportData() {
-      if (!monthlyReportTable) buildMonthlyReportTable();
-
-      const monthValue = $("#monthInput").val();
-      const recipient = $("#recipientSelect").val();
-      const card = $("#cardSelect").val();
-
-      const filtered = tableData.filter(row => {
-        const dt = parseDateBR(row["DATA PAGTO"]);
-        if (!dt) return false;
-
-        if (monthValue) {
-          const [y, m] = monthValue.split("-").map(Number);
-          if (dt.getFullYear() !== y || dt.getMonth() + 1 !== m) return false;
-        }
-
-        if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) {
-          return false;
-        }
-
-        if (card && card !== "Todos" && row["CARTÃO"] !== card) {
-          return false;
-        }
-
-        return true;
-      });
-
-      monthlyReportTable.clear().rows.add(filtered).draw(false);
-
-      setTimeout(() => {
-        monthlyReportTable.columns.adjust().draw(false);
-      }, 100);
-
-      updateReportTotalsFromMonthlyTable();
-    }
-
-    function normalizeBooleanLike(value) {
-      return String(value || "").trim().toUpperCase() === "TRUE" ? "TRUE" : "FALSE";
-    }
-
-    function generateInvestmentId() {
-      return `inv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    }
-
-    function normalizeInvestmentStatus(value) {
-      const v = String(value || "").trim();
-      if (!v) return "Ativo";
-      if (v === "Liberado") return "Liberado";
-      if (v === "Resgatado") return "Resgatado";
-      if (v === "Vencido") return "Vencido";
-      return "Ativo";
-    }
-
-    function normalizeInvestmentTaxType(value) {
-      const v = String(value || "").trim();
-      if (!v) return "IR_REGRESSIVO";
-      if (v === "ISENTO") return "ISENTO";
-      if (v === "MANUAL") return "MANUAL";
-      return "IR_REGRESSIVO";
-    }
-
-    function normalizeInvestmentRow(row = {}) {
-      return {
-        id: String(row.id || "").trim() || generateInvestmentId(),
-        "DATA INVESTIMENTO": String(row["DATA INVESTIMENTO"] || "").trim(),
-        "BANCO": String(row["BANCO"] || "").trim(),
-        "TIPO": String(row["TIPO"] || "").trim(),
-        "VALOR APLICADO": formatMoneyBR(parseMoneyBR(row["VALOR APLICADO"] || 0)),
-        "PRAZO DIAS": parseInt(row["PRAZO DIAS"] || 0, 10) || 0,
-        "DATA VENCIMENTO": String(row["DATA VENCIMENTO"] || "").trim(),
-        "STATUS": normalizeInvestmentStatus(row["STATUS"]),
-        "LIBERADO": normalizeBooleanLike(row["LIBERADO"]),
-        "TIPO TRIBUTAÇÃO": normalizeInvestmentTaxType(row["TIPO TRIBUTAÇÃO"]),
-        "TAXA": String(row["TAXA"] || "").trim(),
-        "VALOR BRUTO ESTIMADO": formatMoneyBR(parseMoneyBR(row["VALOR BRUTO ESTIMADO"] || 0)),
-        "IR ESTIMADO": formatMoneyBR(parseMoneyBR(row["IR ESTIMADO"] || 0)),
-        "VALOR LÍQUIDO ESTIMADO": formatMoneyBR(parseMoneyBR(row["VALOR LÍQUIDO ESTIMADO"] || 0)),
-        "VALOR RESGATADO REAL": formatMoneyBR(parseMoneyBR(row["VALOR RESGATADO REAL"] || 0)),
-        "OBS": String(row["OBS"] || "").trim()
-      };
-    }
-
-    function isInvestmentExpired(row) {
-      const dt = parseDateBR(row["DATA VENCIMENTO"]);
-      if (!dt) return false;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return dt <= today;
-    }
-
-    function getInvestmentDisplayStatus(row) {
-      const baseStatus = String(row["STATUS"] || "").trim();
-      const released = String(row["LIBERADO"] || "").trim() === "TRUE";
-
-      if (baseStatus === "Resgatado") return "Resgatado";
-      if (released && isInvestmentExpired(row)) return "Liberado";
-      if (released) return "Liberado";
-      if (isInvestmentExpired(row)) return "Vencido";
-      return baseStatus || "Ativo";
-    }
-
-    function getInvestmentReleasedAmount(row) {
-      const real = parseMoneyBR(row["VALOR RESGATADO REAL"]);
-      const net = parseMoneyBR(row["VALOR LÍQUIDO ESTIMADO"]);
-      const gross = parseMoneyBR(row["VALOR BRUTO ESTIMADO"]);
-      const applied = parseMoneyBR(row["VALOR APLICADO"]);
-
-      if (real > 0) return real;
-      if (net > 0) return net;
-      if (gross > 0) return gross;
-      return applied;
-    }
-
-    function refreshInvestmentBankOptions() {
-      const banks = Array.from(
-        new Set(
-          investmentData.map(r => String(r["BANCO"] || "").trim()).filter(Boolean)
-        )
-      ).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-
-      $("#investmentBankOptions").html(
-        banks.map(v => `<option value="${v}"></option>`).join("")
-      );
-    }
-
-    function refreshInvestmentFilterOptions() {
-      const bankSel = $("#investmentBankFilter");
-      const typeSel = $("#investmentTypeFilter");
-
-      const currentBank = bankSel.val() || "";
-      const currentType = typeSel.val() || "";
-
-      const banks = Array.from(
-        new Set(
-          investmentData.map(r => String(r["BANCO"] || "").trim()).filter(Boolean)
-        )
-      ).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-
-      const types = Array.from(
-        new Set(
-          investmentData.map(r => String(r["TIPO"] || "").trim()).filter(Boolean)
-        )
-      ).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-
-      bankSel.empty().append('<option value="">Banco: Todos</option>');
-      banks.forEach(v => bankSel.append(`<option value="${v}">${v}</option>`));
-      bankSel.val(currentBank);
-
-      typeSel.empty().append('<option value="">Tipo: Todos</option>');
-      types.forEach(v => typeSel.append(`<option value="${v}">${v}</option>`));
-      typeSel.val(currentType);
-
-      refreshInvestmentBankOptions();
-    }
-
-    function updateInvestmentDashboard() {
-      let totalApplied = 0;
-      let totalExpiredPending = 0;
-      let totalReleased = 0;
-      let releasedTodayValue = 0;
-      let estimatedIr = 0;
-      let estimatedNet = 0;
-      let hasPendingExpired = false;
-
-      investmentData.forEach(row => {
-        const applied = parseMoneyBR(row["VALOR APLICADO"]);
-        const ir = parseMoneyBR(row["IR ESTIMADO"]);
-        const net = parseMoneyBR(row["VALOR LÍQUIDO ESTIMADO"]);
-        const released = row["LIBERADO"] === "TRUE";
-        const expired = isInvestmentExpired(row);
-        const status = getInvestmentDisplayStatus(row);
-
-        totalApplied += applied;
-        estimatedIr += ir;
-        estimatedNet += net;
-
-        if (released) {
-          totalReleased += 1;
-          releasedTodayValue += getInvestmentReleasedAmount(row);
-        }
-
-        if (expired && !released && status !== "Resgatado") {
-          totalExpiredPending += 1;
-          hasPendingExpired = true;
-        }
-      });
-
-      $("#investmentTotalApplied").text(formatMoneyBR(totalApplied));
-      $("#investmentTotalMaturing").text(String(totalExpiredPending));
-      $("#investmentTotalReleased").text(String(totalReleased));
-      $("#investmentReleasedToday").text(formatMoneyBR(releasedTodayValue));
-      $("#investmentEstimatedIr").text(formatMoneyBR(estimatedIr));
-      $("#investmentEstimatedNet").text(formatMoneyBR(estimatedNet));
-      $("#investmentOverdueAlert").toggle(hasPendingExpired);
-    }
-
-    function bindInvestmentFilters() {
-      $("#investmentBankFilter").off("change").on("change", function () {
-        if (!investmentTable) return;
-        investmentTable.column(2).search(this.value.trim()).draw();
-      });
-
-      $("#investmentTypeFilter").off("change").on("change", function () {
-        if (!investmentTable) return;
-        investmentTable.column(3).search(this.value.trim()).draw();
-      });
-
-      $("#investmentStatusFilter").off("change").on("change", function () {
-        if (!investmentTable) return;
-        investmentTable.column(7).search(this.value.trim()).draw();
-      });
-
-      $("#investmentReleasedFilter").off("change").on("change", function () {
-        if (!investmentTable) return;
-        investmentTable.column(8).search(this.value.trim()).draw();
-      });
-
-      $("#btnOnlyExpiredInvestments").off("click").on("click", function () {
-        investmentOnlyExpired = !investmentOnlyExpired;
-
-        $(this)
-          .toggleClass("btn-outline-warning btn-warning")
-          .html(
-            investmentOnlyExpired
-              ? '<i class="bi bi-clock-history"></i> Mostrando vencidos'
-              : '<i class="bi bi-clock-history"></i> Somente vencidos'
-          );
-
-        if (investmentTable) investmentTable.draw();
-      });
-
-      $("#btnClearInvestmentFilters").off("click").on("click", function () {
-        investmentOnlyExpired = false;
-        $("#investmentBankFilter").val("");
-        $("#investmentTypeFilter").val("");
-        $("#investmentStatusFilter").val("");
-        $("#investmentReleasedFilter").val("");
-
-        $("#btnOnlyExpiredInvestments")
-          .removeClass("btn-warning")
-          .addClass("btn-outline-warning")
-          .html('<i class="bi bi-clock-history"></i> Somente vencidos');
-
-        if (!investmentTable) return;
-        investmentTable.columns().search("");
-        investmentTable.draw();
-      });
-    }
-
-    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-      if (!investmentTable) return true;
-      if (settings.nTable !== $("#investmentTable")[0]) return true;
-      if (!investmentOnlyExpired) return true;
-
-      const row = investmentTable.row(dataIndex).data();
-      if (!row) return true;
-
-      return isInvestmentExpired(row);
-    });
-
-    function initInvestmentTable() {
-      if ($.fn.DataTable.isDataTable("#investmentTable")) {
-        $("#investmentTable").DataTable().destroy();
-      }
-
-      investmentTable = $("#investmentTable").DataTable({
-        data: investmentData,
-        columns: [
-          {
-            data: null,
-            orderable: false,
-            render: (_, __, row) =>
-              `<input type="checkbox" class="investment-row-checkbox" data-id="${row.id}">`
-          },
-          { data: "DATA INVESTIMENTO", type: "date-eu", className: "edit-investment-cell" },
-          { data: "BANCO", className: "edit-investment-cell" },
-          { data: "TIPO", className: "edit-investment-cell" },
-          {
-            data: "VALOR APLICADO",
-            className: "edit-investment-cell money-cell",
-            render: d => formatMoneyBR(parseMoneyBR(d))
-          },
-          { data: "PRAZO DIAS", className: "edit-investment-cell text-center" },
-          { data: "DATA VENCIMENTO", type: "date-eu", className: "edit-investment-cell" },
-          {
-            data: null,
-            className: "edit-investment-cell text-center",
-            render: (_, __, row) => getInvestmentDisplayStatus(row)
-          },
-          {
-            data: "LIBERADO",
-            className: "edit-investment-cell text-center",
-            render: d => (String(d || "").trim() === "TRUE" ? "TRUE" : "FALSE")
-          },
-          { data: "TIPO TRIBUTAÇÃO", className: "edit-investment-cell text-center" },
-          { data: "TAXA", className: "edit-investment-cell text-center" },
-          {
-            data: "VALOR BRUTO ESTIMADO",
-            className: "edit-investment-cell money-cell",
-            render: d => formatMoneyBR(parseMoneyBR(d))
-          },
-          {
-            data: "IR ESTIMADO",
-            className: "edit-investment-cell money-cell",
-            render: d => formatMoneyBR(parseMoneyBR(d))
-          },
-          {
-            data: "VALOR LÍQUIDO ESTIMADO",
-            className: "edit-investment-cell money-cell",
-            render: d => formatMoneyBR(parseMoneyBR(d))
-          },
-          {
-            data: "VALOR RESGATADO REAL",
-            className: "edit-investment-cell money-cell",
-            render: d => formatMoneyBR(parseMoneyBR(d))
-          },
-          { data: "OBS", className: "edit-investment-cell" }
-        ],
-        order: [[1, "desc"]],
-        pageLength: 10,
-        lengthMenu: [10, 20, 50, 100, -1],
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
-        },
-        scrollX: true,
-        autoWidth: false
-      });
-
-      $("#selectAllInvestments").off("change").on("change", function () {
-        $(".investment-row-checkbox").prop("checked", this.checked);
-      });
-
-      bindInvestmentFilters();
-
-      $("#investmentTable tbody").off("click").on("click", "td.edit-investment-cell", function () {
-        const cell = investmentTable.cell(this);
-        const colIdx = cell.index().column;
-        const field = investmentTable.column(colIdx).header().textContent.trim();
-
-        if (field === "STATUS") {
-          const row = investmentTable.row(cell.index().row).data();
-          const currentVal = row["STATUS"] || "Ativo";
-
-          const select = $(`
-            <select class="form-control form-control-sm">
-              <option value="Ativo">Ativo</option>
-              <option value="Vencido">Vencido</option>
-              <option value="Liberado">Liberado</option>
-              <option value="Resgatado">Resgatado</option>
-            </select>
-          `);
-
-          $(this).html(select);
-          select.val(currentVal).focus();
-
-          select.on("blur change", async function () {
-            const newVal = $(this).val();
-            const rowIdx = cell.index().row;
-            investmentData[rowIdx]["STATUS"] = newVal;
-            investmentData[rowIdx] = normalizeInvestmentRow(investmentData[rowIdx]);
-
-            updateInvestmentDashboard();
-            refreshInvestmentFilterOptions();
-            initInvestmentTable();
-
-            if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-          });
-
-          return;
-        }
-
-        if (field === "LIBERADO") {
-          const row = investmentTable.row(cell.index().row).data();
-          const currentVal = row["LIBERADO"] || "FALSE";
-
-          const select = $(`
-            <select class="form-control form-control-sm">
-              <option value="FALSE">FALSE</option>
-              <option value="TRUE">TRUE</option>
-            </select>
-          `);
-
-          $(this).html(select);
-          select.val(currentVal).focus();
-
-          select.on("blur change", async function () {
-            const newVal = $(this).val();
-            const rowIdx = cell.index().row;
-            investmentData[rowIdx]["LIBERADO"] = newVal;
-            investmentData[rowIdx] = normalizeInvestmentRow(investmentData[rowIdx]);
-
-            updateInvestmentDashboard();
-            refreshInvestmentFilterOptions();
-            initInvestmentTable();
-
-            if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-          });
-
-          return;
-        }
-
-        if (field === "TIPO TRIBUTAÇÃO") {
-          const row = investmentTable.row(cell.index().row).data();
-          const currentVal = row["TIPO TRIBUTAÇÃO"] || "IR_REGRESSIVO";
-
-          const select = $(`
-            <select class="form-control form-control-sm">
-              <option value="IR_REGRESSIVO">IR_REGRESSIVO</option>
-              <option value="ISENTO">ISENTO</option>
-              <option value="MANUAL">MANUAL</option>
-            </select>
-          `);
-
-          $(this).html(select);
-          select.val(currentVal).focus();
-
-          select.on("blur change", async function () {
-            const newVal = $(this).val();
-            const rowIdx = cell.index().row;
-            investmentData[rowIdx]["TIPO TRIBUTAÇÃO"] = newVal;
-            investmentData[rowIdx] = normalizeInvestmentRow(investmentData[rowIdx]);
-
-            updateInvestmentDashboard();
-            refreshInvestmentFilterOptions();
-            initInvestmentTable();
-
-            if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-          });
-
-          return;
-        }
-
-        const oldVal = cell.data();
-        const input = $(
-          `<input type="text" class="form-control form-control-sm" value="${oldVal ?? ""}">`
-        );
-
-        $(this).html(input);
-        input.focus().select();
-
-        input.on("blur", async function () {
-          let newVal = input.val().trim();
-
-          if (
-            field.includes("VALOR") ||
-            field === "IR ESTIMADO"
-          ) {
-            newVal = formatMoneyBR(parseMoneyBR(newVal));
-          } else if (field === "PRAZO DIAS") {
-            newVal = parseInt(newVal || 0, 10) || 0;
-          }
-
-          cell.data(newVal).draw(false);
-
-          const rowIdx = cell.index().row;
-          investmentData[rowIdx][field] = newVal;
-          investmentData[rowIdx] = normalizeInvestmentRow(investmentData[rowIdx]);
-
-          updateInvestmentDashboard();
-          refreshInvestmentFilterOptions();
-
-          if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-        });
-
-        input.on("keypress", function (e) {
-          if (e.which === 13) input.blur();
-        });
-      });
-    }
-
-    async function loadInvestmentsFromSheets() {
-      if (!(await ensureAccessToken())) {
-        alert("Falha na autenticação.");
-        return;
-      }
-
+  }
+
+  async function loadInvestments() {
+    const ok = await ensureAccessToken();
+    if (ok) {
       try {
         const response = await gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
@@ -2617,669 +2173,951 @@
         });
 
         const rows = response.result.values || [];
-
-        if (rows.length <= 1) {
-          investmentData = [];
-          refreshInvestmentFilterOptions();
-          updateInvestmentDashboard();
-          initInvestmentTable();
-          return;
-        }
-
-        investmentData = rows.slice(1).map(row =>
-          normalizeInvestmentRow({
+        if (rows.length > 1) {
+          investmentData = rows.slice(1).map(row => normalizeInvestmentRow({
             id: row[0] || "",
             "DATA INVESTIMENTO": row[1] || "",
             "BANCO": row[2] || "",
             "TIPO": row[3] || "",
-            "VALOR APLICADO": row[4] || 0,
+            "VALOR APLICADO": row[4] || "0",
             "PRAZO DIAS": row[5] || 0,
             "DATA VENCIMENTO": row[6] || "",
             "STATUS": row[7] || "Ativo",
             "LIBERADO": row[8] || "FALSE",
-            "TIPO TRIBUTAÇÃO": row[9] || "IR_REGRESSIVO",
-            "TAXA": row[10] || "",
-            "VALOR BRUTO ESTIMADO": row[11] || 0,
-            "IR ESTIMADO": row[12] || 0,
-            "VALOR LÍQUIDO ESTIMADO": row[13] || 0,
-            "VALOR RESGATADO REAL": row[14] || 0,
-            "OBS": row[15] || ""
-          })
+            "OBS": row[9] || ""
+          }));
+
+          investmentData.sort((a, b) => {
+            const da = parseDateBR(a["DATA VENCIMENTO"]) || new Date(2100, 0, 1);
+            const db = parseDateBR(b["DATA VENCIMENTO"]) || new Date(2100, 0, 1);
+            return da - db;
+          });
+
+          localStorage.setItem(LS_INVESTMENTS_KEY, JSON.stringify(investmentData));
+          return;
+        }
+      } catch (err) {
+        console.warn("[Investments] Falha ao carregar do Sheets", err);
+      }
+    }
+
+    try {
+      const raw = localStorage.getItem(LS_INVESTMENTS_KEY);
+      investmentData = raw ? JSON.parse(raw).map(normalizeInvestmentRow) : [];
+      if (!Array.isArray(investmentData)) investmentData = [];
+    } catch (e) {
+      investmentData = [];
+    }
+  }
+
+  async function saveInvestments() {
+    const ok = await ensureAccessToken();
+    if (!ok) {
+      localStorage.setItem(LS_INVESTMENTS_KEY, JSON.stringify(investmentData));
+      return;
+    }
+
+    try {
+      const values = [
+        INVESTMENT_HEADERS,
+        ...investmentData.map(r => [
+          r.id,
+          r["DATA INVESTIMENTO"],
+          r["BANCO"],
+          r["TIPO"],
+          r["VALOR APLICADO"],
+          String(r["PRAZO DIAS"] || 0),
+          r["DATA VENCIMENTO"],
+          r["STATUS"],
+          r["LIBERADO"],
+          r["OBS"]
+        ])
+      ];
+
+      await gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId: SPREADSHEET_ID,
+        range: INVESTMENTS_RANGE
+      });
+
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: INVESTMENTS_WRITE_START,
+        valueInputOption: "USER_ENTERED",
+        resource: { values }
+      });
+
+      localStorage.setItem(LS_INVESTMENTS_KEY, JSON.stringify(investmentData));
+    } catch (err) {
+      console.error("[Investments] Erro ao salvar", err);
+      localStorage.setItem(LS_INVESTMENTS_KEY, JSON.stringify(investmentData));
+    }
+  }
+
+  function getUniqueLaunchCards() {
+    return Array.from(new Set(
+      tableData.map(r => (r["CARTÃO"] || "").trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+  }
+
+  function sumOpenByLaunchCardText() {
+    return tableData.reduce((acc, r) => {
+      const card = (r["CARTÃO"] || "").trim();
+      if (!card) return acc;
+      const st = (r["STATUS"] || "").trim();
+      if (st === "Pago") return acc;
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      acc[card] = (acc[card] || 0) + v;
+      return acc;
+    }, {});
+  }
+
+  function sumOpenForLimitItem(item, openMap) {
+    const aliases = (item.aliases || []).map(x => String(x).trim()).filter(Boolean);
+    if (aliases.length === 0) return 0;
+    return aliases.reduce((sum, a) => sum + (openMap[a] || 0), 0);
+  }
+
+  function clearLimitForm() {
+    $("#limitLaunchCard").val("");
+    $("#limitBank").val("");
+    $("#limitBrand").val("");
+    $("#limitCategory").val("");
+    $("#limitTotal").val("");
+    $("#limitAliases").val("");
+    $("#btnSaveLimit").data("editId", "");
+  }
+
+  function fillLaunchCardSelect() {
+    const sel = $("#limitLaunchCard");
+    const current = sel.val() || "";
+    sel.empty().append(`<option value="">(Selecionar...)</option>`);
+    getUniqueLaunchCards().forEach(c => sel.append(`<option value="${c}">${c}</option>`));
+    sel.val(current);
+  }
+
+  function ensurePlaceholderItemsForLaunchCards() {
+    const launchCards = getUniqueLaunchCards();
+
+    launchCards.forEach(txt => {
+      const exists = cardLimits.some(it => (it.aliases || []).includes(txt));
+      if (!exists) {
+        const already = cardLimits.some(it =>
+          (it.total === null || it.total === undefined) &&
+          (it.aliases || []).length === 1 &&
+          it.aliases[0] === txt
         );
 
-        refreshInvestmentFilterOptions();
-        updateInvestmentDashboard();
-        initInvestmentTable();
-      } catch (error) {
-        console.error("Erro ao carregar investimentos:", error);
-        alert("Erro ao carregar investimentos do Google Sheets.");
-      }
-    }
-
-    async function saveInvestmentsToSheets() {
-      if (!(await ensureAccessToken())) {
-        alert("Falha na autenticação.");
-        return false;
-      }
-
-      try {
-        const values = [
-          INVESTMENTS_HEADERS,
-          ...investmentData.map(row => [
-            row.id,
-            row["DATA INVESTIMENTO"],
-            row["BANCO"],
-            row["TIPO"],
-            row["VALOR APLICADO"],
-            String(row["PRAZO DIAS"]),
-            row["DATA VENCIMENTO"],
-            row["STATUS"],
-            row["LIBERADO"],
-            row["TIPO TRIBUTAÇÃO"],
-            row["TAXA"],
-            row["VALOR BRUTO ESTIMADO"],
-            row["IR ESTIMADO"],
-            row["VALOR LÍQUIDO ESTIMADO"],
-            row["VALOR RESGATADO REAL"],
-            row["OBS"]
-          ])
-        ];
-
-        await gapi.client.sheets.spreadsheets.values.clear({
-          spreadsheetId: SPREADSHEET_ID,
-          range: INVESTMENTS_RANGE
-        });
-
-        await gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: INVESTMENTS_WRITE_START,
-          valueInputOption: "USER_ENTERED",
-          resource: { values }
-        });
-
-        return true;
-      } catch (error) {
-        console.error("Erro ao salvar investimentos:", error);
-        alert("Erro ao salvar investimentos no Google Sheets.");
-        return false;
-      }
-    }
-
-    window.gapiLoaded = function () {
-      gapi.load("client", async () => {
-        try {
-          await gapi.client.init({ discoveryDocs: [DISCOVERY_DOC] });
-          gapiInited = true;
-          maybeEnableSheetsButtons();
-        } catch (e) {
-          console.error(e);
-          setSheetsStatus("Sheets erro gapi", "err");
+        if (!already) {
+          cardLimits.push({
+            id: "ph_" + txt,
+            bank: "",
+            brand: "",
+            category: "",
+            total: null,
+            aliases: [txt],
+            hidden: false,
+            placeholder: true
+          });
         }
+      }
+    });
+  }
+
+  function renderCardLimitsTable() {
+    fillLaunchCardSelect();
+    ensurePlaceholderItemsForLaunchCards();
+
+    const openMap = sumOpenByLaunchCardText();
+    const tbody = $("#limitsTbody");
+    tbody.empty();
+
+    const items = [...cardLimits]
+      .filter(it => showHidden ? true : !it.hidden)
+      .sort((a, b) => {
+        const aName = (a.aliases && a.aliases[0]) ? a.aliases[0] : "";
+        const bName = (b.aliases && b.aliases[0]) ? b.aliases[0] : "";
+        return aName.localeCompare(bName, "pt-BR", { sensitivity: "base" });
       });
-    };
 
-    window.gisLoaded = function () {
+    if (items.length === 0) {
+      tbody.append(`<tr><td colspan="5" class="text-center text-muted">Nenhum item.</td></tr>`);
+      return;
+    }
+
+    items.forEach(item => {
+      const displayName = (item.aliases && item.aliases[0]) ? item.aliases[0] : "(sem nome)";
+      const open = sumOpenForLimitItem(item, openMap);
+      const total = (item.total === null || item.total === undefined) ? null : Number(item.total);
+      const free = (total === null) ? null : (total - open);
+      const hasLimit = total !== null;
+
+      const freeClass = !hasLimit ? "text-muted" :
+        free < 0 ? "text-danger" :
+        free < total * 0.15 ? "text-warning" : "text-success";
+
+      const categoryTag = item.category ? `<span class="tag">${String(item.category).toUpperCase()}</span>` : "";
+      const hiddenTag = item.hidden ? `<span class="badge badge-secondary ml-2">Oculto</span>` : "";
+      const noLimitTag = !hasLimit ? `<span class="badge badge-warning ml-2">Sem limite</span>` : "";
+      const aliasesHtml = (item.aliases || []).slice(0, 6).map(a => `<span class="tag">${a}</span>`).join("");
+
+      tbody.append(`
+        <tr>
+          <td>
+            <div><strong>${displayName}</strong>${hiddenTag}${noLimitTag}</div>
+            <div class="mt-1">${categoryTag}${aliasesHtml}</div>
+            <small class="text-muted">Banco: ${item.bank || "-"} | Bandeira: ${item.brand || "-"}</small>
+          </td>
+          <td class="text-right">${hasLimit ? formatMoneyBR(total) : "-"}</td>
+          <td class="text-right">${formatMoneyBR(open)}</td>
+          <td class="text-right ${freeClass}">${hasLimit ? `<strong>${formatMoneyBR(free)}</strong>` : "-"}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary btnEditLimit" type="button" data-id="${item.id}">Editar</button>
+            <button class="btn btn-sm btn-outline-danger btnDeleteLimit" type="button" data-id="${item.id}" ${item.placeholder ? "disabled" : ""}>Excluir</button>
+            <button class="btn btn-sm btn-outline-secondary btnToggleHidden" type="button" data-id="${item.id}">
+              ${item.hidden ? "Reexibir" : "Ocultar"}
+            </button>
+          </td>
+        </tr>
+      `);
+    });
+  }
+
+  function setFormFromItem(item) {
+    $("#limitBank").val(item.bank || "");
+    $("#limitBrand").val(item.brand || "");
+    $("#limitCategory").val(item.category || "");
+    $("#limitTotal").val(item.total == null ? "" : String(item.total));
+    $("#limitAliases").val((item.aliases || []).join("; "));
+    $("#btnSaveLimit").data("editId", item.id);
+  }
+
+  async function upsertLimit() {
+    const editId = $("#btnSaveLimit").data("editId") || "";
+    const bank = $("#limitBank").val().trim();
+    const brand = $("#limitBrand").val().trim();
+    const category = $("#limitCategory").val().trim();
+    const totalRaw = $("#limitTotal").val().trim();
+    const total = totalRaw ? parseMoneyBR(totalRaw) : null;
+    const aliases = parseAliases($("#limitAliases").val());
+
+    if (aliases.length === 0) {
+      alert("Informe pelo menos 1 alias.");
+      return;
+    }
+
+    if (total !== null && total <= 0) {
+      alert("Limite total inválido.");
+      return;
+    }
+
+    const aliasConflicts = [];
+    aliases.forEach(a => {
+      cardLimits.forEach(it => {
+        if (it.id === editId) return;
+        if (it.total != null && (it.aliases || []).includes(a)) aliasConflicts.push(a);
+      });
+    });
+
+    if (aliasConflicts.length > 0) {
+      alert("Alias já usado em outro cartão com limite: " + aliasConflicts[0]);
+      return;
+    }
+
+    if (editId) {
+      const idx = cardLimits.findIndex(x => x.id === editId);
+      if (idx >= 0) {
+        cardLimits[idx] = {
+          ...cardLimits[idx],
+          bank,
+          brand,
+          category,
+          total,
+          aliases,
+          placeholder: false,
+          hidden: false
+        };
+      }
+    } else {
+      cardLimits.push({
+        id: String(Date.now()),
+        bank,
+        brand,
+        category,
+        total,
+        aliases,
+        hidden: false,
+        placeholder: false
+      });
+    }
+
+    const used = new Set(cardLimits.filter(x => !x.placeholder).flatMap(x => x.aliases || []));
+    cardLimits = cardLimits.filter(x => !x.placeholder || !used.has(x.aliases[0]));
+
+    await saveCardLimits();
+    updateAutoCompleteOptions();
+    renderCardLimitsTable();
+    clearLimitForm();
+  }
+
+  async function deleteLimit(id) {
+    const item = cardLimits.find(x => x.id === id);
+    if (!item) return;
+    if (!confirm("Excluir este limite?")) return;
+
+    cardLimits = cardLimits.filter(x => x.id !== id);
+    await saveCardLimits();
+    updateAutoCompleteOptions();
+    renderCardLimitsTable();
+    clearLimitForm();
+  }
+
+  async function toggleHidden(id) {
+    const idx = cardLimits.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    cardLimits[idx].hidden = !cardLimits[idx].hidden;
+    await saveCardLimits();
+    renderCardLimitsTable();
+  }
+
+  $("#btnCardLimits").on("click", async function () {
+    await loadCardLimits();
+    renderCardLimitsTable();
+    $("#cardLimitsModal").modal("show");
+  });
+
+  $("#btnLoadLimits").on("click", async function () {
+    await loadCardLimits();
+    renderCardLimitsTable();
+  });
+
+  $("#btnShowHidden").on("click", function () {
+    showHidden = !showHidden;
+    $(this).text(showHidden ? "Ocultar ocultos" : "Mostrar ocultos");
+    renderCardLimitsTable();
+  });
+
+  $("#btnClearLimit").on("click", clearLimitForm);
+  $("#btnSaveLimit").on("click", upsertLimit);
+
+  $("#limitLaunchCard").on("change", function () {
+    const txt = ($(this).val() || "").trim();
+    if (!txt) return;
+    const current = parseAliases($("#limitAliases").val());
+    if (!current.includes(txt)) current.unshift(txt);
+    $("#limitAliases").val(current.join("; "));
+  });
+
+  $("#limitsTbody").on("click", ".btnEditLimit", function () {
+    const id = $(this).data("id");
+    const item = cardLimits.find(x => x.id === id);
+    if (item) setFormFromItem(item);
+  });
+
+  $("#limitsTbody").on("click", ".btnDeleteLimit", function () {
+    deleteLimit($(this).data("id"));
+  });
+
+  $("#limitsTbody").on("click", ".btnToggleHidden", function () {
+    toggleHidden($(this).data("id"));
+  });
+
+  $("#btnToggleInvestments").on("click", async function () {
+    if (!investmentData.length) {
+      await loadInvestments();
+      initInvestmentTable();
+      updateInvestmentDashboard();
+      updateAutoCompleteOptions();
+    }
+    toggleInvestmentPanel();
+  });
+
+  $("#btnAddInvestment").on("click", function () {
+    $("#investmentForm").slideToggle(250);
+    if (!$("#invDataInvestimento").val()) {
+      $("#invDataInvestimento").val(formatDateBR(new Date()));
+    }
+  });
+
+  $("#cancelInvestmentAdd").on("click", function () {
+    $("#investmentForm").slideUp(250);
+    clearInvestmentForm();
+  });
+
+  $("#invDataInvestimento, #invDataVencimento").on("input", function () {
+    let v = this.value.replace(/\D/g, "").slice(0, 8);
+    if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+    if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5);
+    this.value = v;
+  });
+
+  $("#invValorAplicado").on("input", function () {
+    this.value = this.value.replace(/[^0-9,.\-]/g, "");
+  });
+
+  $("#invPrazoDias, #invDataInvestimento").on("input change", function () {
+    const data = $("#invDataInvestimento").val().trim();
+    const prazo = parseInt($("#invPrazoDias").val() || 0) || 0;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(data) && prazo > 0) {
+      $("#invDataVencimento").val(addDaysToDateBR(data, prazo));
+    }
+  });
+
+  $("#newInvestmentForm").on("submit", async function (e) {
+    e.preventDefault();
+
+    const dataInvestimento = $("#invDataInvestimento").val().trim();
+    const dataVencimento = $("#invDataVencimento").val().trim();
+
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataInvestimento)) {
+      alert("Data do investimento inválida! Use DD/MM/AAAA");
+      return;
+    }
+
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataVencimento)) {
+      alert("Data de vencimento inválida! Use DD/MM/AAAA");
+      return;
+    }
+
+    const row = normalizeInvestmentRow({
+      id: String(Date.now()),
+      "DATA INVESTIMENTO": dataInvestimento,
+      "BANCO": $("#invBanco").val().trim(),
+      "TIPO": $("#invTipo").val().trim(),
+      "VALOR APLICADO": $("#invValorAplicado").val(),
+      "PRAZO DIAS": $("#invPrazoDias").val(),
+      "DATA VENCIMENTO": dataVencimento,
+      "STATUS": $("#invStatus").val(),
+      "LIBERADO": $("#invLiberado").val(),
+      "OBS": $("#invObs").val().trim()
+    });
+
+    investmentData.push(row);
+    investmentData.sort((a, b) => {
+      const da = parseDateBR(a["DATA VENCIMENTO"]) || new Date(2100, 0, 1);
+      const db = parseDateBR(b["DATA VENCIMENTO"]) || new Date(2100, 0, 1);
+      return da - db;
+    });
+
+    initInvestmentTable();
+    updateInvestmentDashboard();
+    updateAutoCompleteOptions();
+
+    this.reset();
+    $("#invStatus").val("Ativo");
+    $("#invLiberado").val("FALSE");
+    $("#investmentForm").slideUp(250);
+
+    await triggerAutoSave();
+  });
+
+  $("#btnDeleteInvestment").on("click", async function () {
+    const ids = getSelectedInvestmentIds();
+    if (ids.length === 0) {
+      alert("Selecione pelo menos um investimento para excluir.");
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja excluir ${ids.length} investimento(s)?`)) return;
+
+    investmentData = investmentData.filter(r => !ids.includes(r.id));
+    initInvestmentTable();
+    updateInvestmentDashboard();
+    updateAutoCompleteOptions();
+    await triggerAutoSave();
+  });
+
+  $("#btnMarkInvestmentReleased").on("click", async function () {
+    const ids = getSelectedInvestmentIds();
+    if (ids.length === 0) {
+      alert("Selecione pelo menos um investimento para marcar como liberado.");
+      return;
+    }
+
+    if (!confirm(`Marcar ${ids.length} investimento(s) como liberado(s)?`)) return;
+
+    investmentData = investmentData.map(r => {
+      if (!ids.includes(r.id)) return r;
+      return normalizeInvestmentRow({
+        ...r,
+        "LIBERADO": "TRUE",
+        "STATUS": r["STATUS"] === "Resgatado" ? "Resgatado" : "Vencido"
+      });
+    });
+
+    initInvestmentTable();
+    updateInvestmentDashboard();
+    updateAutoCompleteOptions();
+    await triggerAutoSave();
+  });
+
+  $("#btnLoadInvestments").on("click", async function () {
+    await loadInvestments();
+    initInvestmentTable();
+    updateInvestmentDashboard();
+    updateAutoCompleteOptions();
+  });
+
+  $("#btnAddRow").on("click", function () {
+    $("#addRowForm").slideToggle(250);
+    updateAutoCompleteOptions();
+    const hoje = formatDateBR(new Date());
+    $("#newDataCompra").val(hoje);
+    $("#newDataPagamento").val(hoje);
+  });
+
+  $("#cancelAdd").on("click", function () {
+    $("#addRowForm").slideUp(250);
+    $("#newRowForm")[0].reset();
+  });
+
+  $("#newDataCompra, #newDataPagamento").on("input", function () {
+    let v = this.value.replace(/\D/g, "").slice(0, 8);
+    if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+    if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5);
+    this.value = v;
+  });
+
+  $("#newValorTotal").on("input", function () {
+    this.value = this.value.replace(/[^0-9,.\-]/g, "");
+  });
+
+  $("#newValorTotal, #newTotalParcelas").on("input change", function () {
+    const total = parseMoneyBR($("#newValorTotal").val());
+    const parc = parseInt($("#newTotalParcelas").val()) || 1;
+    $("#newValorParcela").val(formatMoneyBR(total / parc));
+  });
+
+  $("#newRowForm").on("submit", async function (e) {
+    e.preventDefault();
+
+    const dataCompra = $("#newDataCompra").val().trim();
+    const dataPrimeira = $("#newDataPagamento").val().trim();
+
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataCompra)) {
+      alert("Data da compra inválida! Use DD/MM/AAAA");
+      return;
+    }
+
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataPrimeira)) {
+      alert("Data da primeira parcela inválida! Use DD/MM/AAAA");
+      return;
+    }
+
+    const base = normalizeRow({
+      "DATA COMPRA": dataCompra,
+      "VALORES A RECEBER": $("#newReceber").val().trim(),
+      "DESCRIÇÃO": $("#newDescricao").val().trim(),
+      "LOJA": $("#newLoja").val().trim(),
+      "VALOR TOTAL": $("#newValorTotal").val(),
+      "CARTÃO": $("#newCartao").val().trim(),
+      "TOTAL PARCELAS": parseInt($("#newTotalParcelas").val()) || 1,
+      "PARCELA": 1,
+      "VALOR PARCELA": $("#newValorParcela").val(),
+      "DATA PAGTO": dataPrimeira,
+      "STATUS": $("#newStatus").val()
+    });
+
+    const totalParcelas = base["TOTAL PARCELAS"];
+
+    for (let i = 1; i <= totalParcelas; i++) {
+      const r = {
+        ...base,
+        "PARCELA": i,
+        "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1)
+      };
+      tableData.push(normalizeRow(r));
+    }
+
+    tableData.sort((a, b) => (parseDateBR(b["DATA COMPRA"]) - parseDateBR(a["DATA COMPRA"])));
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+
+    this.reset();
+    $("#addRowForm").slideUp(250);
+
+    await triggerAutoSave();
+  });
+
+  $("#btnExcluirRegistro").on("click", async function () {
+    const selecionados = $(".row-checkbox:checked").length;
+    if (selecionados === 0) {
+      alert("Selecione pelo menos um registro para excluir.");
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja excluir ${selecionados} registros?`)) return;
+
+    const indices = [];
+    $(".row-checkbox:checked").each(function () {
+      const row = $(this).closest("tr");
+      const idx = dataTable.row(row).index();
+      indices.push(idx);
+    });
+
+    indices.sort((a, b) => b - a).forEach(idx => tableData.splice(idx, 1));
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    await triggerAutoSave();
+  });
+
+  $("#btnMarcarPago").on("click", async function () {
+    const selecionados = $(".row-checkbox:checked").length;
+    if (selecionados === 0) {
+      alert("Selecione pelo menos um registro para marcar como pago.");
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja marcar ${selecionados} registros como PAGO?`)) return;
+
+    $(".row-checkbox:checked").each(function () {
+      const row = $(this).closest("tr");
+      const idx = dataTable.row(row).index();
+      if (tableData[idx]) {
+        tableData[idx]["STATUS"] = "Pago";
+        tableData[idx] = normalizeRow(tableData[idx]);
+      }
+    });
+
+    initTable();
+    updateDashboard();
+    updateAutoCompleteOptions();
+    await triggerAutoSave();
+  });
+
+  $("#btnUpdateTotals").on("click", function () {
+    initTable();
+    updateDashboard();
+    updateInvestmentDashboard();
+    updateAutoCompleteOptions();
+    setSheetsStatus("Totais atualizados localmente", "warn");
+  });
+
+  function updateReportTotalsFromMonthlyTable() {
+    if (!monthlyReportTable) return;
+
+    let total = 0;
+    let pago = 0;
+    let apagar = 0;
+
+    const rows = monthlyReportTable.rows({ search: "applied" }).data().toArray();
+    rows.forEach(r => {
+      const v = parseMoneyBR(r["VALOR PARCELA"]);
+      total += v;
+      if ((r["STATUS"] || "").trim() === "Pago") pago += v;
+      else apagar += v;
+    });
+
+    $("#reportTotalGeral").text(formatMoneyBR(total));
+    $("#reportTotalPago").text(formatMoneyBR(pago));
+    $("#reportTotalAPagar").text(formatMoneyBR(apagar));
+  }
+
+  function buildMonthlyReportTable() {
+    if ($.fn.DataTable.isDataTable("#monthlyReportTable")) {
+      $("#monthlyReportTable").DataTable().destroy(true);
+    }
+
+    $("#monthlyReportTable").empty().append(`
+      <thead>
+        <tr>
+          <th>DATA COMPRA</th>
+          <th>VALORES A RECEBER</th>
+          <th>DESCRIÇÃO</th>
+          <th>LOJA</th>
+          <th>VALOR TOTAL</th>
+          <th>CARTÃO</th>
+          <th>PARCELA TOTAL</th>
+          <th>VALOR PARCELA</th>
+          <th>DATA PAGTO</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `);
+
+    monthlyReportTable = $("#monthlyReportTable").DataTable({
+      data: [],
+      columns: [
+        { data: "DATA COMPRA" },
+        { data: "VALORES A RECEBER" },
+        { data: "DESCRIÇÃO" },
+        { data: "LOJA" },
+        { data: "VALOR TOTAL", render: d => formatMoneyBR(parseMoneyBR(d)) },
+        { data: "CARTÃO" },
+        { data: null, render: d => `${d["PARCELA"] || 1}/${d["TOTAL PARCELAS"] || 1}`, className: "text-center" },
+        { data: "VALOR PARCELA", render: d => formatMoneyBR(parseMoneyBR(d)) },
+        { data: "DATA PAGTO" },
+        { data: "STATUS" }
+      ],
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100, -1],
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" },
+      dom: "frtip",
+      order: [[8, "asc"]],
+      autoWidth: false,
+      deferRender: true
+    });
+
+    monthlyReportTable.on("draw", updateReportTotalsFromMonthlyTable);
+  }
+
+  function loadMonthlyReportData() {
+    if (!monthlyReportTable) buildMonthlyReportTable();
+
+    const monthValue = $("#monthInput").val();
+    const recipient = $("#recipientSelect").val();
+    const card = $("#cardSelect").val();
+
+    const filtered = tableData.filter(row => {
+      const dt = parseDateBR(row["DATA PAGTO"]);
+      if (!dt) return false;
+
+      if (monthValue) {
+        const [y, m] = monthValue.split("-").map(Number);
+        if (dt.getFullYear() !== y || (dt.getMonth() + 1) !== m) return false;
+      }
+
+      if (recipient && recipient !== "Todos" && row["VALORES A RECEBER"] !== recipient) return false;
+      if (card && card !== "Todos" && row["CARTÃO"] !== card) return false;
+
+      return true;
+    });
+
+    monthlyReportTable.clear().rows.add(filtered).draw(false);
+    setTimeout(() => monthlyReportTable.columns.adjust().draw(false), 100);
+    updateReportTotalsFromMonthlyTable();
+  }
+
+  $("#btnMonthlyReport").on("click", function () {
+    const recSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
+    const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
+
+    $("#recipientSelect").empty().append('<option value="Todos">Todos</option>');
+    [...recSet].sort().forEach(v => $("#recipientSelect").append(`<option value="${v}">${v}</option>`));
+
+    $("#cardSelect").empty().append('<option value="Todos">Todos</option>');
+    [...cardSet].sort().forEach(v => $("#cardSelect").append(`<option value="${v}">${v}</option>`));
+
+    $("#monthlyReportModal").modal("show");
+  });
+
+  $("#monthInput, #recipientSelect, #cardSelect").on("change", loadMonthlyReportData);
+
+  $("#monthlyReportModal").on("shown.bs.modal", function () {
+    loadMonthlyReportData();
+    setTimeout(() => monthlyReportTable?.columns.adjust().draw(false), 100);
+  });
+
+  $("#monthlyReportModal").on("hidden.bs.modal", function () {
+    monthlyReportTable?.clear().draw(false);
+    $("#reportTotalGeral, #reportTotalPago, #reportTotalAPagar").text("R$ 0,00");
+  });
+
+  $("#btnPrintReport").on("click", function () {
+    if (!monthlyReportTable) return;
+    const old = monthlyReportTable.page.len();
+    monthlyReportTable.page.len(-1).draw(false);
+
+    setTimeout(() => {
+      monthlyReportTable.columns.adjust().draw(false);
+      window.print();
+      monthlyReportTable.page.len(old).draw(false);
+    }, 200);
+  });
+
+  function maybeEnableSheetsButtons() {
+    if (gapiInited && gisInited) {
+      $("#btnLoadSheets, #btnSaveSheets").prop("disabled", false);
+      setSheetsStatus("Sheets pronto (faça login)", "warn");
+    }
+  }
+
+  window.gapiLoaded = function () {
+    gapi.load("client", async () => {
       try {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: "https://www.googleapis.com/auth/spreadsheets",
-          callback: tokenResponse => {
-            if (tokenResponse.error) {
-              setSheetsStatus("Sheets erro login", "err");
-              return;
-            }
-            hasToken = true;
-            setSheetsStatus("Sheets autenticado", "ok");
-          }
-        });
-
-        gisInited = true;
+        await gapi.client.init({ discoveryDocs: [DISCOVERY_DOC] });
+        gapiInited = true;
         maybeEnableSheetsButtons();
       } catch (e) {
         console.error(e);
-        setSheetsStatus("Sheets erro GIS", "err");
+        setSheetsStatus("Sheets: erro gapi", "err");
       }
-    };
+    });
+  };
 
-    function maybeEnableSheetsButtons() {
-      if (gapiInited && gisInited) {
-        $("#btnLoadSheets, #btnSaveSheets").prop("disabled", false);
-        setSheetsStatus("Sheets pronto, faça login", "warn");
-      }
-    }
-
-    async function ensureAccessToken() {
-      if (hasToken) return true;
-      if (!tokenClient) return false;
-
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-
-      return new Promise(resolve => {
-        tokenClient.callback = tokenResponse => {
+  window.gisLoaded = function () {
+    try {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: "https://www.googleapis.com/auth/spreadsheets",
+        callback: tokenResponse => {
           if (tokenResponse.error) {
-            console.error("Erro OAuth:", tokenResponse);
-            setSheetsStatus("Sheets erro no login", "err");
-            resolve(false);
+            setSheetsStatus("Sheets: erro login", "err");
             return;
           }
           hasToken = true;
           setSheetsStatus("Sheets autenticado", "ok");
-          resolve(true);
-        };
-
-        tokenClient.requestAccessToken({
-          prompt: isMobile ? "consent" : ""
-        });
-      });
-    }
-
-    async function loadFromSheets() {
-      if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
-
-      try {
-        setSheetsStatus("Sheets carregando", "warn");
-
-        const res = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: DATA_RANGE_A1
-        });
-
-        const rows = res.result.values || [];
-        tableData = rows.slice(1).map(row =>
-          normalizeRow({
-            "DATA COMPRA": row[0],
-            "VALORES A RECEBER": row[1],
-            "DESCRIÇÃO": row[2],
-            "LOJA": row[3],
-            "VALOR TOTAL": row[4] || 0,
-            "CARTÃO": row[5],
-            "TOTAL PARCELAS": row[6] || 1,
-            "PARCELA": row[7] || 1,
-            "VALOR PARCELA": row[8] || 0,
-            "DATA PAGTO": row[9],
-            "STATUS": row[10] || "Em aberto"
-          })
-        );
-
-        await loadCardLimits();
-        initTable();
-        updateDashboard();
-        updateAutoCompleteOptions();
-        setSheetsStatus("Sheets carregado", "ok");
-      } catch (err) {
-        console.error(err);
-        setSheetsStatus("Sheets erro ao carregar", "err");
-      }
-    }
-
-    async function saveAllToSheets() {
-      if (!(await ensureAccessToken())) return alert("Falha na autenticação.");
-
-      try {
-        setSheetsStatus("Sheets salvando", "warn");
-
-        const values = [
-          HEADERS,
-          ...tableData.map(r => [
-            r["DATA COMPRA"],
-            r["VALORES A RECEBER"],
-            r["DESCRIÇÃO"],
-            r["LOJA"],
-            r["VALOR TOTAL"],
-            r["CARTÃO"],
-            String(r["TOTAL PARCELAS"]),
-            String(r["PARCELA"]),
-            r["VALOR PARCELA"],
-            r["DATA PAGTO"],
-            r["STATUS"]
-          ])
-        ];
-
-        await gapi.client.sheets.spreadsheets.values.clear({
-          spreadsheetId: SPREADSHEET_ID,
-          range: DATA_RANGE_A1
-        });
-
-        await gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: WRITE_START_A1,
-          valueInputOption: "USER_ENTERED",
-          resource: { values }
-        });
-
-        await saveCardLimits();
-        setSheetsStatus("Sheets salvo", "ok");
-      } catch (err) {
-        console.error(err);
-        setSheetsStatus("Sheets erro ao salvar", "err");
-      }
-    }
-
-    $("#btnAddRow").on("click", function () {
-      $("#addRowForm").slideToggle(300);
-      updateAutoCompleteOptions();
-      const hoje = formatDateBR(new Date());
-      $("#newDataCompra").val(hoje);
-      $("#newDataPagamento").val(hoje);
-    });
-
-    $("#cancelAdd").on("click", function () {
-      $("#addRowForm").slideUp(300);
-      $("#newRowForm")[0].reset();
-    });
-
-    $("#newDataCompra, #newDataPagamento").on("input", function () {
-      let v = this.value.replace(/\D/g, "").slice(0, 8);
-      if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
-      if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5);
-      this.value = v;
-    });
-
-    $("#newValorTotal").on("input", function () {
-      this.value = this.value.replace(/[^0-9,.-]/g, "");
-    });
-
-    $("#newValorTotal, #newTotalParcelas").on("input change", function () {
-      const total = parseMoneyBR($("#newValorTotal").val());
-      const parc = parseInt($("#newTotalParcelas").val(), 10) || 1;
-      $("#newValorParcela").val(formatMoneyBR(total / parc));
-    });
-
-    $("#newRowForm").on("submit", async function (e) {
-      e.preventDefault();
-
-      const dataCompra = $("#newDataCompra").val().trim();
-      const dataPrimeira = $("#newDataPagamento").val().trim();
-
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataCompra)) {
-        alert("Data da compra inválida! Use DD/MM/AAAA");
-        return;
-      }
-
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataPrimeira)) {
-        alert("Data da primeira parcela inválida! Use DD/MM/AAAA");
-        return;
-      }
-
-      const base = normalizeRow({
-        "DATA COMPRA": dataCompra,
-        "VALORES A RECEBER": $("#newReceber").val().trim(),
-        "DESCRIÇÃO": $("#newDescricao").val().trim(),
-        "LOJA": $("#newLoja").val().trim(),
-        "VALOR TOTAL": $("#newValorTotal").val(),
-        "CARTÃO": $("#newCartao").val().trim(),
-        "TOTAL PARCELAS": parseInt($("#newTotalParcelas").val(), 10) || 1,
-        "PARCELA": 1,
-        "VALOR PARCELA": $("#newValorParcela").val(),
-        "DATA PAGTO": dataPrimeira,
-        "STATUS": $("#newStatus").val()
-      });
-
-      const totalParcelas = base["TOTAL PARCELAS"];
-
-      for (let i = 1; i <= totalParcelas; i++) {
-        const r = {
-          ...base,
-          "PARCELA": i,
-          "DATA PAGTO": addMonthsToDateBR(dataPrimeira, i - 1)
-        };
-        tableData.push(normalizeRow(r));
-      }
-
-      tableData.sort((a, b) => parseDateBR(b["DATA COMPRA"]) - parseDateBR(a["DATA COMPRA"]));
-      initTable();
-      updateDashboard();
-      updateAutoCompleteOptions();
-      this.reset();
-      $("#addRowForm").slideUp(300);
-
-      if ($("#chkAutoSave").prop("checked")) {
-        await saveAllToSheets();
-      } else {
-        alert("Parcelas adicionadas. Clique em Salvar no Sheets para gravar.");
-      }
-    });
-
-    $("#btnExcluirRegistro").on("click", async function () {
-      const selecionados = $(".row-checkbox:checked").length;
-      if (selecionados === 0) {
-        alert("Selecione pelo menos um registro para excluir.");
-        return;
-      }
-
-      if (!confirm(`Tem certeza que deseja excluir ${selecionados} registros?`)) return;
-
-      const indices = [];
-      $(".row-checkbox:checked").each(function () {
-        const row = $(this).closest("tr");
-        const idx = dataTable.row(row).index();
-        indices.push(idx);
-      });
-
-      indices.sort((a, b) => b - a).forEach(idx => tableData.splice(idx, 1));
-
-      initTable();
-      updateDashboard();
-      updateAutoCompleteOptions();
-
-      if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
-    });
-
-    $("#btnMarcarPago").on("click", async function () {
-      const selecionados = $(".row-checkbox:checked").length;
-      if (selecionados === 0) {
-        alert("Selecione pelo menos um registro para marcar como pago.");
-        return;
-      }
-
-      if (!confirm(`Tem certeza que deseja marcar ${selecionados} registros como PAGO?`)) return;
-
-      $(".row-checkbox:checked").each(function () {
-        const row = $(this).closest("tr");
-        const idx = dataTable.row(row).index();
-        if (tableData[idx]) tableData[idx]["STATUS"] = "Pago";
-        tableData[idx] = normalizeRow(tableData[idx]);
-      });
-
-      initTable();
-      updateDashboard();
-      updateAutoCompleteOptions();
-
-      if ($("#chkAutoSave").prop("checked")) await saveAllToSheets();
-    });
-
-    $("#btnUpdateTotals").on("click", function () {
-      initTable();
-      updateDashboard();
-      updateAutoCompleteOptions();
-      alert("Totais atualizados com sucesso!");
-    });
-
-    $("#btnMonthlyReport").on("click", function () {
-      const recSet = new Set(tableData.map(r => r["VALORES A RECEBER"]).filter(Boolean));
-      const cardSet = new Set(tableData.map(r => r["CARTÃO"]).filter(Boolean));
-
-      $("#recipientSelect")
-        .empty()
-        .append('<option value="Todos">Todos</option>');
-      [...recSet].sort().forEach(v => {
-        $("#recipientSelect").append(`<option value="${v}">${v}</option>`);
-      });
-
-      $("#cardSelect")
-        .empty()
-        .append('<option value="Todos">Todos</option>');
-      [...cardSet].sort().forEach(v => {
-        $("#cardSelect").append(`<option value="${v}">${v}</option>`);
-      });
-
-      $("#monthlyReportModal").modal("show");
-    });
-
-    $("#monthInput, #recipientSelect, #cardSelect").on("change", loadMonthlyReportData);
-
-    $("#monthlyReportModal").on("shown.bs.modal", function () {
-      loadMonthlyReportData();
-      setTimeout(() => monthlyReportTable?.columns.adjust().draw(false), 100);
-    });
-
-    $("#monthlyReportModal").on("hidden.bs.modal", function () {
-      monthlyReportTable?.clear().draw(false);
-      $("#reportTotalGeral").text("R$ 0,00");
-      $("#reportTotalPago").text("R$ 0,00");
-      $("#reportTotalAPagar").text("R$ 0,00");
-    });
-
-    $("#btnPrintReport").on("click", function () {
-      if (!monthlyReportTable) return;
-      const old = monthlyReportTable.page.len();
-      monthlyReportTable.page.len(-1).draw(false);
-      setTimeout(() => {
-        monthlyReportTable.columns.adjust().draw(false);
-        window.print();
-        monthlyReportTable.page.len(old).draw(false);
-      }, 200);
-    });
-
-    $("#btnCardLimits").on("click", async function () {
-      await loadCardLimits();
-      renderCardLimitsTable();
-      $("#cardLimitsModal").modal("show");
-    });
-
-    $("#btnLoadLimits").on("click", async function () {
-      await loadCardLimits();
-      renderCardLimitsTable();
-    });
-
-    $("#btnShowHidden").on("click", function () {
-      showHidden = !showHidden;
-      $(this).text(showHidden ? "Ocultar ocultos" : "Mostrar ocultos");
-      renderCardLimitsTable();
-    });
-
-    $("#btnClearLimit").on("click", clearLimitForm);
-    $("#btnSaveLimit").on("click", upsertLimit);
-
-    $("#limitLaunchCard").on("change", function () {
-      const txt = $(this).val().trim();
-      if (!txt) return;
-      const current = parseAliases($("#limitAliases").val());
-      if (!current.includes(txt)) current.unshift(txt);
-      $("#limitAliases").val(current.join(", "));
-    });
-
-    $("#limitsTbody").on("click", ".btnEditLimit", function () {
-      const id = $(this).data("id");
-      const item = cardLimits.find(x => x.id === id);
-      if (item) setFormFromItem(item);
-    });
-
-    $("#limitsTbody").on("click", ".btnDeleteLimit", function () {
-      const id = $(this).data("id");
-      deleteLimit(id);
-    });
-
-    $("#limitsTbody").on("click", ".btnToggleHidden", function () {
-      const id = $(this).data("id");
-      toggleHidden(id);
-    });
-
-    $("#btnAddInvestment").on("click", function () {
-      $("#investmentForm").slideToggle(300);
-
-      const hoje = formatDateBR(new Date());
-      $("#invDataInvestimento").val(hoje);
-
-      if (!$("#invDataVencimento").val() && $("#invPrazoDias").val()) {
-        const dias = parseInt($("#invPrazoDias").val(), 10) || 0;
-        if (dias > 0) {
-          const base = parseDateBR(hoje);
-          if (base) {
-            base.setDate(base.getDate() + dias);
-            $("#invDataVencimento").val(formatDateBR(base));
-          }
         }
-      }
-    });
-
-    $("#cancelInvestmentAdd").on("click", function () {
-      $("#investmentForm").slideUp(300);
-      $("#newInvestmentForm")[0].reset();
-      $("#invStatus").val("Ativo");
-      $("#invLiberado").val("FALSE");
-      $("#invTipoTributacao").val("IR_REGRESSIVO");
-    });
-
-    $("#invDataInvestimento, #invDataVencimento").on("input", function () {
-      let v = this.value.replace(/\D/g, "").slice(0, 8);
-      if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
-      if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5);
-      this.value = v;
-    });
-
-    $("#invValorAplicado, #invValorBrutoEstimado, #invIrEstimado, #invValorLiquidoEstimado, #invValorResgatadoReal").on("input", function () {
-      this.value = this.value.replace(/[^0-9,.-]/g, "");
-    });
-
-    $("#invPrazoDias, #invDataInvestimento").on("change input", function () {
-      const dias = parseInt($("#invPrazoDias").val(), 10) || 0;
-      const data = $("#invDataInvestimento").val().trim();
-      const base = parseDateBR(data);
-      if (!base || dias <= 0) return;
-      base.setDate(base.getDate() + dias);
-      $("#invDataVencimento").val(formatDateBR(base));
-    });
-
-    $("#newInvestmentForm").on("submit", async function (e) {
-      e.preventDefault();
-
-      const dataInvestimento = $("#invDataInvestimento").val().trim();
-      const dataVencimento = $("#invDataVencimento").val().trim();
-
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataInvestimento)) {
-        alert("Data do investimento inválida! Use DD/MM/AAAA");
-        return;
-      }
-
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dataVencimento)) {
-        alert("Data de vencimento inválida! Use DD/MM/AAAA");
-        return;
-      }
-
-      const row = normalizeInvestmentRow({
-        id: generateInvestmentId(),
-        "DATA INVESTIMENTO": dataInvestimento,
-        "BANCO": $("#invBanco").val().trim(),
-        "TIPO": $("#invTipo").val().trim(),
-        "VALOR APLICADO": $("#invValorAplicado").val(),
-        "PRAZO DIAS": parseInt($("#invPrazoDias").val(), 10) || 0,
-        "DATA VENCIMENTO": dataVencimento,
-        "STATUS": $("#invStatus").val(),
-        "LIBERADO": $("#invLiberado").val(),
-        "TIPO TRIBUTAÇÃO": $("#invTipoTributacao").val(),
-        "TAXA": $("#invTaxa").val().trim(),
-        "VALOR BRUTO ESTIMADO": $("#invValorBrutoEstimado").val(),
-        "IR ESTIMADO": $("#invIrEstimado").val(),
-        "VALOR LÍQUIDO ESTIMADO": $("#invValorLiquidoEstimado").val(),
-        "VALOR RESGATADO REAL": $("#invValorResgatadoReal").val(),
-        "OBS": $("#invObs").val().trim()
       });
 
-      investmentData.push(row);
-      investmentData.sort(
-        (a, b) => parseDateBR(b["DATA INVESTIMENTO"]) - parseDateBR(a["DATA INVESTIMENTO"])
-      );
+      gisInited = true;
+      maybeEnableSheetsButtons();
+    } catch (e) {
+      console.error(e);
+      setSheetsStatus("Sheets: erro GIS", "err");
+    }
+  };
 
+  async function ensureAccessToken() {
+    if (hasToken) return true;
+    if (!tokenClient) return false;
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    return new Promise((resolve) => {
+      tokenClient.callback = (tokenResponse) => {
+        if (tokenResponse.error) {
+          console.error("[Auth] Erro OAuth:", tokenResponse);
+          setSheetsStatus("Sheets: erro no login", "err");
+          resolve(false);
+          return;
+        }
+
+        hasToken = true;
+        setSheetsStatus("Sheets autenticado", "ok");
+        resolve(true);
+      };
+
+      tokenClient.requestAccessToken({
+        prompt: isMobile ? "consent" : ""
+      });
+    });
+  }
+
+  async function loadFromSheets() {
+    if (!(await ensureAccessToken())) {
+      alert("Falha na autenticação.");
+      return;
+    }
+
+    try {
+      setSheetsStatus("Sheets carregando…", "warn");
+
+      const res = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: DATA_RANGE_A1
+      });
+
+      const rows = res.result.values || [];
+      tableData = rows.slice(1).map(row => normalizeRow({
+        "DATA COMPRA": row[0] || "",
+        "VALORES A RECEBER": row[1] || "",
+        "DESCRIÇÃO": row[2] || "",
+        "LOJA": row[3] || "",
+        "VALOR TOTAL": row[4] || "0",
+        "CARTÃO": row[5] || "",
+        "TOTAL PARCELAS": row[6] || 1,
+        "PARCELA": row[7] || 1,
+        "VALOR PARCELA": row[8] || "0",
+        "DATA PAGTO": row[9] || "",
+        "STATUS": row[10] || "Em aberto"
+      }));
+
+      await loadCardLimits();
+      await loadInvestments();
+
+      initTable();
       initInvestmentTable();
+      updateDashboard();
       updateInvestmentDashboard();
-      refreshInvestmentFilterOptions();
-      this.reset();
-      $("#investmentForm").slideUp(300);
+      updateAutoCompleteOptions();
 
-      $("#invStatus").val("Ativo");
-      $("#invLiberado").val("FALSE");
-      $("#invTipoTributacao").val("IR_REGRESSIVO");
+      setSheetsStatus("Sheets carregado", "ok");
+    } catch (err) {
+      console.error(err);
+      setSheetsStatus("Sheets: erro ao carregar", "err");
+    }
+  }
 
-      if ($("#chkAutoSave").prop("checked")) {
-        await saveInvestmentsToSheets();
-      } else {
-        alert("Investimento adicionado. Clique em salvar para gravar no Sheets.");
-      }
-    });
+  async function saveAllToSheets(silent = false) {
+    if (isSaving) return;
+    isSaving = true;
 
-    $("#btnDeleteInvestment").on("click", async function () {
-      const selecionados = $(".investment-row-checkbox:checked").length;
-      if (selecionados === 0) {
-        alert("Selecione pelo menos um investimento para excluir.");
+    try {
+      if (!(await ensureAccessToken())) {
+        if (!silent) alert("Falha na autenticação.");
         return;
       }
 
-      if (!confirm(`Tem certeza que deseja excluir ${selecionados} investimento(s)?`)) return;
+      setSheetsStatus("Sheets salvando…", "warn");
 
-      const ids = [];
-      $(".investment-row-checkbox:checked").each(function () {
-        ids.push($(this).data("id"));
+      const values = [
+        HEADERS,
+        ...tableData.map(r => [
+          r["DATA COMPRA"],
+          r["VALORES A RECEBER"],
+          r["DESCRIÇÃO"],
+          r["LOJA"],
+          r["VALOR TOTAL"],
+          r["CARTÃO"],
+          String(r["TOTAL PARCELAS"]),
+          String(r["PARCELA"]),
+          r["VALOR PARCELA"],
+          r["DATA PAGTO"],
+          r["STATUS"]
+        ])
+      ];
+
+      await gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId: SPREADSHEET_ID,
+        range: DATA_RANGE_A1
       });
 
-      investmentData = investmentData.filter(r => !ids.includes(r.id));
-
-      initInvestmentTable();
-      updateInvestmentDashboard();
-      refreshInvestmentFilterOptions();
-
-      if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-    });
-
-    $("#btnMarkInvestmentReleased").on("click", async function () {
-      const selecionados = $(".investment-row-checkbox:checked").length;
-      if (selecionados === 0) {
-        alert("Selecione pelo menos um investimento.");
-        return;
-      }
-
-      if (!confirm(`Marcar ${selecionados} investimento(s) como liberado(s)?`)) return;
-
-      const ids = [];
-      $(".investment-row-checkbox:checked").each(function () {
-        ids.push($(this).data("id"));
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: WRITE_START_A1,
+        valueInputOption: "USER_ENTERED",
+        resource: { values }
       });
 
-      investmentData = investmentData.map(r => {
-        if (!ids.includes(r.id)) return r;
-        return normalizeInvestmentRow({
-          ...r,
-          "LIBERADO": "TRUE",
-          "STATUS": r["STATUS"] === "Resgatado" ? "Resgatado" : "Liberado"
-        });
-      });
+      await saveCardLimits();
+      await saveInvestments();
 
-      initInvestmentTable();
-      updateInvestmentDashboard();
-      refreshInvestmentFilterOptions();
+      setSheetsStatus("Sheets salvo automaticamente", "ok");
+    } catch (err) {
+      console.error(err);
+      setSheetsStatus("Sheets: erro ao salvar", "err");
+      if (!silent) alert("Erro ao salvar no Sheets.");
+    } finally {
+      isSaving = false;
+    }
+  }
 
-      if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-    });
+  $("#btnLoadSheets").on("click", loadFromSheets);
+  $("#btnSaveSheets").on("click", () => saveAllToSheets(false));
 
-    $("#btnMarkInvestmentRescued").on("click", async function () {
-      const selecionados = $(".investment-row-checkbox:checked").length;
-      if (selecionados === 0) {
-        alert("Selecione pelo menos um investimento.");
-        return;
-      }
+  $(document).ready(async function () {
+    setSheetsStatus("Sheets aguardando bibliotecas…", "warn");
 
-      if (!confirm(`Marcar ${selecionados} investimento(s) como resgatado(s)?`)) return;
+    await loadCardLimits();
+    await loadInvestments();
 
-      const ids = [];
-      $(".investment-row-checkbox:checked").each(function () {
-        ids.push($(this).data("id"));
-      });
+    clearLimitForm();
+    clearInvestmentForm();
 
-      investmentData = investmentData.map(r => {
-        if (!ids.includes(r.id)) return r;
-        return normalizeInvestmentRow({
-          ...r,
-          "LIBERADO": "TRUE",
-          "STATUS": "Resgatado",
-          "VALOR RESGATADO REAL":
-            parseMoneyBR(r["VALOR RESGATADO REAL"]) > 0
-              ? r["VALOR RESGATADO REAL"]
-              : r["VALOR LÍQUIDO ESTIMADO"]
-        });
-      });
+    tableData = [];
+    initTable();
+    initInvestmentTable();
 
-      initInvestmentTable();
-      updateInvestmentDashboard();
-      refreshInvestmentFilterOptions();
-
-      if ($("#chkAutoSave").prop("checked")) await saveInvestmentsToSheets();
-    });
-
-    $("#btnLoadSheets").on("click", loadFromSheets);
-    $("#btnSaveSheets").on("click", saveAllToSheets);
-    $("#btnLoadInvestments").on("click", loadInvestmentsFromSheets);
+    updateDashboard();
+    updateInvestmentDashboard();
+    updateAutoCompleteOptions();
+    refreshSummaryYearOptions();
+    refreshSummaryRecipientOptions();
 
     $("#summaryYearFilter").on("change", function () {
       summaryYearValue = this.value;
@@ -3297,25 +3135,24 @@
       updateDashboard();
     });
 
-    $(document).ready(async function () {
-      setSheetsStatus("Sheets aguardando bibliotecas", "warn");
-      await loadCardLimits();
-      clearLimitForm();
-
-      tableData = [];
-      investmentData = [];
-
-      initTable();
-      updateDashboard();
-      initInvestmentTable();
-      updateInvestmentDashboard();
-      updateAutoCompleteOptions();
-
-      $("#chkAutoSave").prop("checked", true);
-      $("#btnLoadSheets, #btnSaveSheets").prop("disabled", true);
-
-      maybeEnableSheetsButtons();
+    $("#btnToggleSummaryPanel").on("click", function () {
+      toggleSummaryPanel();
     });
-  </script>
+
+    const origUpdate = updateAutoCompleteOptions;
+    updateAutoCompleteOptions = function () {
+      origUpdate();
+      refreshSummaryYearOptions();
+      refreshSummaryRecipientOptions();
+    };
+
+    $("#chkAutoSave").prop("checked", true);
+    $("#btnLoadSheets, #btnSaveSheets").prop("disabled", true);
+
+    toggleSummaryPanel(false);
+    toggleInvestmentPanel(false);
+    maybeEnableSheetsButtons();
+  });
+</script>
 </body>
 </html>
